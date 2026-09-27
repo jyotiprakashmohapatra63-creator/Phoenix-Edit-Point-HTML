@@ -793,6 +793,121 @@
             background: #842029;
         }
 
+        /* Theme-matched message popup: replaces the browser's white alert box. */
+        #appMessageModal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 6000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(2, 6, 23, 0.82);
+            backdrop-filter: blur(7px);
+            box-sizing: border-box;
+        }
+
+        .app-message-card {
+            --message-color: #38bdf8;
+            position: relative;
+            width: min(100%, 390px);
+            overflow: hidden;
+            border: 1px solid var(--message-color);
+            border-radius: 14px;
+            background: linear-gradient(145deg, #111b2e 0%, #0b0f19 100%);
+            color: #f8fafc;
+            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.72), 0 0 25px color-mix(in srgb, var(--message-color) 35%, transparent);
+            animation: appMessageIn 0.22s ease-out;
+        }
+
+        .app-message-card::before {
+            content: '';
+            display: block;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, var(--message-color), transparent);
+        }
+
+        .app-message-card.success { --message-color: #00e676; }
+        .app-message-card.error { --message-color: #ff5252; }
+        .app-message-card.warning { --message-color: #ffca28; }
+        .app-message-card.info { --message-color: #38bdf8; }
+
+        @keyframes appMessageIn {
+            from { opacity: 0; transform: translateY(14px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .app-message-content {
+            padding: 22px 22px 18px;
+            text-align: center;
+        }
+
+        .app-message-icon {
+            display: grid;
+            width: 52px;
+            height: 52px;
+            place-items: center;
+            margin: 0 auto 12px;
+            border: 1px solid var(--message-color);
+            border-radius: 50%;
+            color: var(--message-color);
+            background: color-mix(in srgb, var(--message-color) 13%, #0b0f19);
+            font-size: 29px;
+            font-weight: 800;
+            box-shadow: 0 0 18px color-mix(in srgb, var(--message-color) 28%, transparent);
+        }
+
+        .app-message-title {
+            margin: 0 30px 8px;
+            color: var(--message-color);
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+        }
+
+        .app-message-text {
+            margin: 0;
+            color: #dbeafe;
+            font-size: 14px;
+            line-height: 1.55;
+        }
+
+        .app-message-close {
+            position: absolute;
+            top: 12px;
+            right: 14px;
+            border: 0;
+            background: transparent;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 25px;
+            line-height: 1;
+        }
+
+        .app-message-close:hover, .app-message-close:focus-visible {
+            color: #ffffff;
+            outline: none;
+        }
+
+        .app-message-ok {
+            width: 100%;
+            margin-top: 18px;
+            padding: 11px 16px;
+            border: 1px solid var(--message-color);
+            border-radius: 7px;
+            background: color-mix(in srgb, var(--message-color) 18%, #0b0f19);
+            color: #ffffff;
+            cursor: pointer;
+            font: inherit;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .app-message-ok:hover, .app-message-ok:focus-visible {
+            background: color-mix(in srgb, var(--message-color) 32%, #0b0f19);
+            outline: none;
+        }
+
         /* App controls and adaptive layout (phone, tablet, desktop). */
         .brand-logo {
             display: block;
@@ -1199,6 +1314,18 @@
 
 <div id="inlineSaveNotice" role="status" aria-live="polite"></div>
 
+<div id="appMessageModal" role="dialog" aria-modal="true" aria-labelledby="appMessageTitle" onclick="if (event.target === this) closeAppMessage()">
+    <div id="appMessageCard" class="app-message-card info">
+        <button type="button" class="app-message-close" aria-label="Close message" onclick="closeAppMessage()">&times;</button>
+        <div class="app-message-content">
+            <div id="appMessageIcon" class="app-message-icon" aria-hidden="true">i</div>
+            <h2 id="appMessageTitle" class="app-message-title">Phoenix Edit Point</h2>
+            <p id="appMessageText" class="app-message-text"></p>
+            <button type="button" class="app-message-ok" onclick="closeAppMessage()">OK</button>
+        </div>
+    </div>
+</div>
+
 <script src="app-config.js"></script>
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyF3BThTADOh63j2rJLlMA3y0AI6EZ7QOtUUOX8C-O1MM4CnoT54vom9uvnMZ7DPZ21/exec";
@@ -1330,6 +1457,31 @@
         inlineNoticeTimer = setTimeout(() => {
             notice.style.display = 'none';
         }, 2600);
+    }
+
+    function showAppMessage(message, type, title) {
+        const safeType = ['success', 'error', 'warning', 'info'].includes(type) ? type : 'info';
+        const defaults = {
+            success: { title: 'Success!', icon: '✓' },
+            error: { title: 'Something went wrong', icon: '!' },
+            warning: { title: 'Please check', icon: '!' },
+            info: { title: 'Phoenix Edit Point', icon: 'i' }
+        };
+        const modal = document.getElementById('appMessageModal');
+        const card = document.getElementById('appMessageCard');
+        const messageTitle = document.getElementById('appMessageTitle');
+        const messageIcon = document.getElementById('appMessageIcon');
+
+        card.className = 'app-message-card ' + safeType;
+        messageTitle.textContent = title || defaults[safeType].title;
+        messageIcon.textContent = defaults[safeType].icon;
+        document.getElementById('appMessageText').textContent = String(message || '');
+        modal.style.display = 'flex';
+        modal.querySelector('.app-message-ok').focus();
+    }
+
+    function closeAppMessage() {
+        document.getElementById('appMessageModal').style.display = 'none';
     }
 
     function refreshInlineSheet(sheetName) {
@@ -1788,7 +1940,7 @@
             fetchAppData();
             document.getElementById('appDataModal').style.display = 'flex';
         } else {
-            alert(typeName + " opened successfully!");
+            showAppMessage(typeName + " opened successfully!", 'info');
         }
     }
 
@@ -2047,12 +2199,12 @@
         const remarks = document.getElementById('remarksInput').value;
 
         if (!category) {
-            alert("Category Select karein!");
+            showAppMessage("Category Select karein!", 'warning');
             return;
         }
 
         if (!rawAmount || isNaN(rawAmount)) {
-            alert("Sahi Amount Bharein!");
+            showAppMessage("Sahi Amount Bharein!", 'warning');
             return;
         }
 
@@ -2081,7 +2233,7 @@
             body: JSON.stringify(payload)
         })
         .then(() => {
-            alert("Data Google Sheet me Successfully Add ho gaya!");
+            showAppMessage("Data Google Sheet me successfully add ho gaya!", 'success');
             document.getElementById('nameInput').value = '';
             document.getElementById('amountInput').value = '';
             document.getElementById('remarksInput').value = '';
@@ -2090,7 +2242,7 @@
         })
         .catch(err => {
             console.error(err);
-            alert("Data Submit me issue aaya, dobara try karein!");
+            showAppMessage("Data submit me issue aaya, dobara try karein!", 'error');
             submitBtn.innerText = "SUBMIT";
             submitBtn.disabled = false;
         });
