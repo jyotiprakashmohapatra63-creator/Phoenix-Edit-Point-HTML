@@ -873,6 +873,89 @@
             border-radius: 0;
             box-shadow: none;
         }
+
+        /* On phones, a wide spreadsheet becomes one complete card per row.
+           This keeps every field readable without horizontal scrolling. */
+        @media (max-width: 600px) {
+            .table-responsive, .studio-table-container {
+                overflow-x: hidden;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .balance-sheet-table, .studio-table,
+            .balance-sheet-table tbody, .studio-table tbody {
+                display: block;
+                width: 100%;
+                min-width: 0;
+            }
+
+            .balance-sheet-table thead, .studio-table thead {
+                display: none;
+            }
+
+            .balance-sheet-table tbody, .studio-table tbody {
+                padding: 8px;
+            }
+
+            .balance-sheet-table tr, .studio-table tr {
+                display: block;
+                margin: 0 0 10px;
+                overflow: hidden;
+                border: 1px solid #374151;
+                border-radius: 8px;
+                background: #161b22;
+            }
+
+            .balance-sheet-table td, .studio-table td {
+                display: grid;
+                grid-template-columns: minmax(110px, 42%) minmax(0, 58%);
+                align-items: center;
+                gap: 8px;
+                width: 100%;
+                min-height: 42px;
+                padding: 9px 10px;
+                border: 0;
+                border-bottom: 1px solid #30363d;
+                white-space: normal;
+                overflow-wrap: anywhere;
+                box-sizing: border-box;
+            }
+
+            .balance-sheet-table tr td:last-child,
+            .studio-table tr td:last-child {
+                border-bottom: 0;
+            }
+
+            .balance-sheet-table td::before, .studio-table td::before {
+                content: attr(data-label);
+                color: #94a3b8 !important;
+                font-size: 12px;
+                font-weight: 700;
+                line-height: 1.25;
+            }
+
+            .balance-sheet-table td[colspan], .studio-table td[colspan] {
+                display: block;
+                min-height: auto;
+                padding: 20px 10px;
+                text-align: center;
+            }
+
+            .balance-sheet-table td[colspan]::before, .studio-table td[colspan]::before {
+                display: none;
+            }
+
+            .inline-edit-select, .dropdown-badge, .badge, .app-badge {
+                width: 100%;
+                min-width: 0;
+                max-width: 100%;
+            }
+
+            .editable-cell {
+                min-width: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1065,7 +1148,7 @@
             Maa Tarini Studio
         </div>
         <div class="studio-table-container">
-            <table class="studio-table">
+            <table class="studio-table" id="studioDataTable">
                 <thead>
                     <tr>
                         <th>Date</th>
@@ -1095,7 +1178,7 @@
             APP DATA
         </div>
         <div class="studio-table-container">
-            <table class="studio-table">
+            <table class="studio-table" id="appDataTable">
                 <thead>
                     <tr>
                         <th>App</th>
@@ -1368,6 +1451,20 @@
         return '₹' + String(value === null || value === undefined || value === '' ? 0 : value);
     }
 
+    function applyResponsiveTableLabels(tableId, customLabels) {
+        const table = document.getElementById(tableId);
+        if (!table) return;
+
+        const labels = customLabels || Array.from(table.querySelectorAll('thead th'))
+            .map(header => header.textContent.trim());
+
+        table.querySelectorAll('tbody tr').forEach(row => {
+            Array.from(row.cells).forEach((cell, index) => {
+                if (!cell.hasAttribute('colspan')) cell.dataset.label = labels[index] || '';
+            });
+        });
+    }
+
     function renderBalanceInline(data) {
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
@@ -1393,6 +1490,7 @@
             tbody.appendChild(tr);
         });
 
+        applyResponsiveTableLabels('balanceSheetTable');
         enableInlineEditing(tbody);
         const oldScript = document.getElementById('jsonp-script');
         if (oldScript) oldScript.remove();
@@ -1439,6 +1537,7 @@
             tbody.appendChild(tr);
         });
 
+        applyResponsiveTableLabels('studioDataTable');
         enableInlineEditing(tbody);
         const oldStudioScript = document.getElementById('studio-jsonp-script');
         if (oldStudioScript) oldStudioScript.remove();
@@ -1488,6 +1587,8 @@
             '</td><td class="balance-value">' + escapeHtml(displayMoney(formatCurrency(netBalance))) + '</td>';
         tbody.appendChild(totalRow);
 
+        applyResponsiveTableLabels('appDataTable',
+            ['App', 'Total Income', 'Total Expense', 'Balance']);
         enableInlineEditing(tbody);
         const oldAppScript = document.getElementById('appdata-jsonp-script');
         if (oldAppScript) oldAppScript.remove();
