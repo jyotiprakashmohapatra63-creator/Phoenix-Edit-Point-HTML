@@ -1705,22 +1705,22 @@
     <div class="sidebar-section">
         <div class="panel-group">
             <div class="panel-title">Your Data</div>
-            <button class="cyber-btn balance-sheet" onclick="requestPassword('Balance Sheet')">Balance Sheet</button>
-            <button class="cyber-btn monthly-saving" onclick="requestPassword('Monthly Saving')">Monthly Saving</button>
-            <button class="cyber-btn app-data" onclick="requestPassword('APP DATA')">APP DATA</button>
+            <button class="cyber-btn balance-sheet" onclick="openRequestedSheet('Balance Sheet')">Balance Sheet</button>
+            <button class="cyber-btn monthly-saving" onclick="openRequestedSheet('Monthly Saving')">Monthly Saving</button>
+            <button class="cyber-btn app-data" onclick="openRequestedSheet('APP DATA')">APP DATA</button>
             <button class="cyber-btn" onclick="openPaymentDeskModal()" style="border-color: #f59e0b; background: linear-gradient(135deg, #451a03 0%, #78350f 100%); color: #fde68a;">💳 Payment QR Desk</button>
             <button class="cyber-btn" onclick="openThemeSettingsModal()" style="border-color: #a855f7; background: linear-gradient(135deg, #3b0764 0%, #581c87 100%); color: #e9d5ff;">⚙️ Settings &amp; Theme</button>
-            <!-- Admin Auth Status Badge & Button -->
+            <!-- Studio Security PIN Badge & Change PIN Button -->
             <div id="adminAuthStatusBox" style="margin-top: 6px; padding: 7px 10px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 6px; display: flex; align-items: center; justify-content: space-between; gap: 6px;">
                 <div style="display: flex; align-items: center; gap: 7px; overflow: hidden;">
-                    <span id="adminAuthIcon" style="font-size: 15px;">🔒</span>
+                    <span id="adminAuthIcon" style="font-size: 15px;">🛡️</span>
                     <div style="display: flex; flex-direction: column; overflow: hidden; text-align: left;">
-                        <span id="adminAuthStatusLabel" style="font-size: 9.5px; text-transform: uppercase; font-weight: 700; color: #94a3b8; letter-spacing: 0.5px;">Admin Shield</span>
-                        <span id="adminAuthEmailLabel" style="font-size: 11px; color: #f87171; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 105px;">Locked</span>
+                        <span id="adminAuthStatusLabel" style="font-size: 9.5px; text-transform: uppercase; font-weight: 700; color: #38bdf8; letter-spacing: 0.5px;">Studio Security</span>
+                        <span id="adminAuthEmailLabel" style="font-size: 11px; color: #94a3b8; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 105px;">PIN Protected</span>
                     </div>
                 </div>
-                <button type="button" id="adminAuthActionBtn" onclick="handleAdminAuthButtonClick()" style="background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; color: #38bdf8; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: bold; cursor: pointer; white-space: nowrap; transition: all 0.2s;">
-                    Login
+                <button type="button" id="adminAuthActionBtn" onclick="openChangePinModal()" style="background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; color: #38bdf8; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: bold; cursor: pointer; white-space: nowrap; transition: all 0.2s;">
+                    Change PIN
                 </button>
             </div>
         </div>
@@ -1837,62 +1837,77 @@
     </div>
 </div>
 
-<div id="adminAuthModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content" style="max-width: 440px; padding: 26px 24px; border: 1px solid rgba(56, 189, 248, 0.35); box-shadow: 0 20px 60px rgba(0,0,0,0.85), 0 0 35px rgba(14, 165, 233, 0.25); border-radius: 14px; background: radial-gradient(circle at top, #131d2e 0%, #080c14 100%);">
-        <span class="close-modal" onclick="closeAdminAuthModal()" style="font-size: 26px; color: #94a3b8; cursor: pointer; position: absolute; right: 18px; top: 14px;">&times;</span>
+<div id="adminAuthModal" class="login-modal" style="display: none; align-items: center; justify-content: center;">
+    <div class="login-card" style="position: relative; max-width: 380px; width: 92%; padding: 24px 20px; border-radius: 16px; background: #0a0f1d; border: 1px solid rgba(56, 189, 248, 0.45); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);">
+        <span class="close-login-btn" onclick="closeAdminAuthModal()" style="position: absolute; top: 12px; right: 16px; font-size: 24px; color: #94a3b8; cursor: pointer;">&times;</span>
         
         <div style="text-align: center; margin-bottom: 14px;">
-            <img src="PhoenixLOGO-full-v2.png" alt="Phoenix Edit Point" style="max-width: 220px; width: 100%; height: auto; max-height: 70px; object-fit: contain; margin: 0 auto; display: block;" onerror="if(typeof PHOENIX_FULL_LOGO_DATA!=='undefined')this.src=PHOENIX_FULL_LOGO_DATA;">
-            <div style="margin-top: 10px; display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 20px; font-size: 11px; font-weight: 700; color: #38bdf8; letter-spacing: 0.5px; text-transform: uppercase;">
-                <i class="fa-solid fa-shield-halved"></i> Firebase Admin Security
-            </div>
-            <div id="adminAuthTargetBadge" style="font-size: 12px; color: #cbd5e1; margin-top: 6px; font-weight: 600;">
-                Unlock Protected Access
+            <img src="PhoenixLOGO-full-v2.png" alt="Phoenix Edit Point" style="max-width: 200px; width: 100%; height: auto; max-height: 60px; object-fit: contain; margin: 0 auto; display: block;" onerror="if(typeof PHOENIX_FULL_LOGO_DATA!=='undefined')this.src=PHOENIX_FULL_LOGO_DATA;">
+            <div id="adminAuthTargetBadge" style="margin-top: 10px; display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 20px; font-size: 11px; font-weight: 700; color: #38bdf8; letter-spacing: 0.5px; text-transform: uppercase;">
+                <i class="fa-solid fa-shield-halved"></i> Studio Security PIN
             </div>
         </div>
 
-        <!-- 0. DEVICE ACTIVATION REQUIRED (ONLY FOR FRESH INSTALL / REINSTALL) -->
-        <div id="desktopDeviceActivationView" style="display: none; padding: 20px 16px; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(239, 68, 68, 0.5); border-radius: 12px; text-align: center; margin-bottom: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.6);">
-            <div style="font-size: 34px; margin-bottom: 8px;">🛡️</div>
-            <div style="font-size: 14px; color: #38bdf8; font-weight: 700; margin-bottom: 6px;">
-                New Setup / Device Activation Required
+        <!-- 1. DELETE STUDIO PIN CONFIRMATION VIEW -->
+        <div id="studioDeletePinView" style="display: none; padding: 18px 14px; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(239, 68, 68, 0.5); border-radius: 12px; text-align: center; margin-bottom: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.6);">
+            <div style="font-size: 30px; margin-bottom: 6px;">🗑️</div>
+            <div style="font-size: 13.5px; color: #f87171; font-weight: 700; margin-bottom: 4px;">
+                Confirm Studio Deletion
             </div>
-            <div style="font-size: 11.5px; color: #f87171; line-height: 1.5; margin-bottom: 14px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 6px; padding: 8px;">
-                ନୂଆ Software Install ରେ ସୁରକ୍ଷା ପାଇଁ ପ୍ରଥମେ Google Verification (jyotiprakashmohapatra63@gmail.com) କରି Device Activate କରନ୍ତୁ। PIN ଏବେ କାମ କରିବ ନାହିଁ।
+            <div id="deleteStudioPromptText" style="font-size: 12px; color: #cbd5e1; margin-bottom: 12px;">
+                Enter Studio PIN to delete this studio:
             </div>
-            <button type="button" onclick="openDesktopBrowserLogin()" style="width: 100%; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: white; border: 1px solid #38bdf8; border-radius: 8px; padding: 12px 16px; font-weight: bold; font-size: 13.5px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4);">
-                <i class="fa-brands fa-google"></i> Activate Device with Google (Verify କରନ୍ତୁ)
-            </button>
-        </div>
-
-        <!-- 1. PIN UNLOCK VIEW (FOR DAILY USE ONCE ACTIVATED) -->
-        <div id="desktopPinUnlockView" style="padding: 18px 14px; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 12px; text-align: center; margin-bottom: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.6);">
-            <div style="font-size: 13.5px; color: #38bdf8; font-weight: 700; margin-bottom: 4px;">
-                <i class="fa-solid fa-key"></i> Enter Studio PIN (ଆପଣଙ୍କ PIN ଦିଅନ୍ତୁ)
-            </div>
-            <div style="font-size: 11px; color: #94a3b8; margin-bottom: 12px;">
-                ନିଜର Secret PIN ଦେଇ ସିଧାସଳଖ Unlock କରନ୍ତୁ (No Google Required)।
-            </div>
-            <div style="display: flex; gap: 8px; justify-content: center; align-items: center; margin-bottom: 12px;">
-                <input type="password" id="desktopStudioPinInput" placeholder="PIN" maxlength="6" inputmode="numeric" style="width: 140px; text-align: center; font-size: 20px; letter-spacing: 4px; font-weight: bold; background: #080c14; border: 1px solid #38bdf8; border-radius: 6px; color: #ffffff; padding: 7px 10px;" onkeydown="if(event.key==='Enter')submitStudioPinUnlock();">
-                <button type="button" onclick="submitStudioPinUnlock()" style="background: #0284c7; color: white; border: none; border-radius: 6px; padding: 9px 18px; font-weight: bold; font-size: 13px; cursor: pointer; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);">
-                    <i class="fa-solid fa-unlock"></i> Unlock
+            <div style="display: flex; gap: 8px; justify-content: center; align-items: center; margin-bottom: 10px;">
+                <input type="password" id="deleteStudioPinInput" placeholder="PIN" maxlength="6" inputmode="numeric" style="width: 130px; text-align: center; font-size: 20px; letter-spacing: 4px; font-weight: bold; background: #080c14; border: 1px solid #ef4444; border-radius: 6px; color: #ffffff; padding: 7px 10px;" onkeydown="if(event.key==='Enter')submitStudioDeleteWithPin();">
+                <button type="button" onclick="submitStudioDeleteWithPin()" style="background: #dc2626; color: white; border: none; border-radius: 6px; padding: 9px 16px; font-weight: bold; font-size: 13px; cursor: pointer; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);">
+                    Delete
                 </button>
             </div>
-            <div style="display: flex; justify-content: center; gap: 12px; font-size: 11.5px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px;">
-                <a href="javascript:void(0)" onclick="openDesktopBrowserLogin()" style="color: #38bdf8; text-decoration: underline; font-weight: 600;">
-                    <i class="fa-solid fa-key"></i> Forgot / Change PIN (Google Verification ଦରକାର)
-                </a>
+            <div style="font-size: 11.5px; margin-top: 6px;">
+                <a href="javascript:void(0)" onclick="closeAdminAuthModal()" style="color: #94a3b8; text-decoration: underline;">Cancel</a>
             </div>
         </div>
 
-        <div id="desktopGoogleLoginLinkWrap" style="text-align: center; margin-bottom: 12px;">
-            <a href="javascript:void(0)" onclick="openDesktopBrowserLogin()" style="color: #38bdf8; font-size: 12px; text-decoration: underline; font-weight: 600;">
-                <i class="fa-brands fa-google"></i> Login with Google (Chrome ରେ Verify କରନ୍ତୁ)
-            </a>
+        <!-- 2. CHANGE PIN VIEW -->
+        <div id="desktopChangePinView" style="display: none; padding: 18px 14px; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 12px; text-align: center; margin-bottom: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.6);">
+            <!-- Step 1: Verify Old PIN -->
+            <div id="changePinStep1">
+                <div style="font-size: 13.5px; color: #38bdf8; font-weight: 700; margin-bottom: 4px;">
+                    <i class="fa-solid fa-key"></i> Change Studio PIN
+                </div>
+                <div style="font-size: 11.5px; color: #94a3b8; margin-bottom: 12px;">
+                    Enter your current (Old) PIN:
+                </div>
+                <div style="display: flex; gap: 8px; justify-content: center; align-items: center; margin-bottom: 10px;">
+                    <input type="password" id="oldStudioPinInput" placeholder="Old PIN" maxlength="6" inputmode="numeric" style="width: 130px; text-align: center; font-size: 20px; letter-spacing: 4px; font-weight: bold; background: #080c14; border: 1px solid #38bdf8; border-radius: 6px; color: #ffffff; padding: 7px 10px;" onkeydown="if(event.key==='Enter')verifyOldPinForChange();">
+                    <button type="button" onclick="verifyOldPinForChange()" style="background: #0284c7; color: white; border: none; border-radius: 6px; padding: 9px 16px; font-weight: bold; font-size: 13px; cursor: pointer; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);">
+                        Verify
+                    </button>
+                </div>
+                <div style="font-size: 10.5px; color: #64748b; margin-top: 8px;">
+                    (Forgot PIN? View or edit it in Firebase Console under phoenix_security &gt; studio_auth)
+                </div>
+            </div>
+
+            <!-- Step 2: Set New PIN -->
+            <div id="changePinStep2" style="display: none;">
+                <div style="font-size: 13.5px; color: #34d399; font-weight: 700; margin-bottom: 4px;">
+                    <i class="fa-solid fa-lock"></i> Set New Studio PIN
+                </div>
+                <div style="font-size: 11.5px; color: #94a3b8; margin-bottom: 10px;">
+                    Enter a new 4 to 6 digit PIN:
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px; max-width: 200px; margin: 0 auto 10px auto;">
+                    <input type="password" id="newStudioPinInput" placeholder="New PIN" maxlength="6" inputmode="numeric" style="width: 100%; text-align: center; font-size: 18px; letter-spacing: 4px; font-weight: bold; background: #080c14; border: 1px solid #38bdf8; border-radius: 6px; color: #ffffff; padding: 7px 10px;">
+                    <input type="password" id="confirmNewStudioPinInput" placeholder="Confirm PIN" maxlength="6" inputmode="numeric" style="width: 100%; text-align: center; font-size: 18px; letter-spacing: 4px; font-weight: bold; background: #080c14; border: 1px solid #38bdf8; border-radius: 6px; color: #ffffff; padding: 7px 10px;" onkeydown="if(event.key==='Enter')submitNewStudioPin();">
+                    <button type="button" onclick="submitNewStudioPin()" style="background: #10b981; color: white; border: none; border-radius: 6px; padding: 9px 18px; font-weight: bold; font-size: 13px; cursor: pointer; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4); margin-top: 4px;">
+                        Save New PIN
+                    </button>
+                </div>
+            </div>
         </div>
 
-        <div id="adminAuthMsg" style="margin-top: 14px; font-size: 12px; line-height: 1.4; min-height: 18px; text-align: center;"></div>
+        <div id="adminAuthMsg" style="margin-top: 10px; font-size: 12px; line-height: 1.4; min-height: 18px; text-align: center;"></div>
     </div>
 </div>
 
@@ -2505,68 +2520,12 @@
         if (event) event.stopPropagation();
         const sName = String(studioName || '').trim();
         if (!sName) return;
-
-        const authUser = (typeof firebase !== 'undefined' && firebase.auth) ? firebase.auth().currentUser : currentAdminUser;
-        if (!authUser) {
-            openAdminAuthModal('Delete Studio: ' + sName);
-            showAppMessage("Studio Delete କରିବା ପାଇଁ ପ୍ରଥମେ Admin Login କରନ୍ତୁ!", "warning", "Admin Required");
-            return;
-        }
-
-        showAppConfirm(
-            `ଆପଣ ପ୍ରକୃତରେ "${sName}" Studio ଏବଂ ଏହାର ସମସ୍ତ ଡାଟା Delete କରିବାକୁ ଚାହୁଁଛନ୍ତି କି? Delete ହେବା ପରେ ଏହାକୁ ଆଉ ଫେରାଇ ଅଣାଯାଇପାରିବ ନାହିଁ।`,
-            "Studio ଡିଲିଟ୍",
-            function() {
-                // 1. Remove from dynamicStudios and record in deletedStudios
-                dynamicStudios = dynamicStudios.filter(s => s.toLowerCase() !== sName.toLowerCase());
-                if (!deletedStudios.some(d => d.toLowerCase() === sName.toLowerCase())) {
-                    deletedStudios.push(sName);
-                }
-                try {
-                    localStorage.setItem("phoenix_deleted_studios", JSON.stringify(deletedStudios));
-                } catch(e) {}
-                saveStudios();
-
-                // 2. Also remove all entries associated with this studio
-                const studioEntries = (cachedEntries || []).filter(e => {
-                    const s = String(e.studio || e.sourceStudio || '').trim().toLowerCase();
-                    return s === sName.toLowerCase() || (e.name && e.name.toLowerCase().includes('(' + sName.toLowerCase() + ')'));
-                });
-
-                if (isFirebaseActive && db) {
-                    const deletePromises = studioEntries.map(e => db.collection("entries").doc(e.id).delete());
-                    Promise.all(deletePromises)
-                        .then(() => {
-                            renderStudioSelectors();
-                            refreshOpenModals();
-                            showAppMessage(`"${sName}" Studio ଏବଂ ଏହାର ସମସ୍ତ ଡାଟା ସଫଳତାର ସହ Delete ହୋଇଗଲା!`, "success", "ସଫଳତା");
-                        })
-                        .catch(err => {
-                            console.error("Studio delete error:", err);
-                            renderStudioSelectors();
-                            refreshOpenModals();
-                            showAppMessage(`"${sName}" Studio Delete ହୋଇଗଲା!`, "success", "ସଫଳତା");
-                        });
-                } else {
-                    studioEntries.forEach(se => {
-                        const idx = cachedEntries.findIndex(e => String(e.id) === String(se.id));
-                        if (idx !== -1) cachedEntries.splice(idx, 1);
-                    });
-                    saveLocalEntries();
-                    renderStudioSelectors();
-                    refreshOpenModals();
-                    showAppMessage(`"${sName}" Studio ସଫଳତାର ସହ Delete ହୋଇଗଲା!`, "success", "ସଫଳତା");
-                }
-            },
-            null,
-            "Delete Studio",
-            "Cancel"
-        );
+        studioPendingDeletion = sName;
+        openStudioDeletePinModal(sName);
     }
 
     function openStudioSheet(studioName) {
-        pendingTargetType = studioName;
-        requestPassword(studioName);
+        openRequestedSheet(studioName);
     }
 
     function handleStudioInputChange(inputObj) {
@@ -3829,282 +3788,13 @@
         }
     }
 
-    let isAdminAuthInitialized = false;
-    function initAdminAuth() {
-        if (isAdminAuthInitialized) return;
-        isAdminAuthInitialized = true;
-
-        if (typeof checkAndHandleDesktopAuthBridge === 'function') {
-            checkAndHandleDesktopAuthBridge();
-        }
-
-        if (typeof syncStudioPinFromCloud === 'function') {
-            syncStudioPinFromCloud();
-        }
-
-        // AUTO-LOGOUT: Every time desktop software starts, it is strictly locked!
-        currentAdminUser = null;
-        updateAdminAuthUI(null);
-        try {
-            sessionStorage.removeItem('phoenix_admin_verified_email');
-        } catch(e) {}
-
-        if (typeof firebase !== 'undefined' && firebase.auth) {
-            try {
-                if (window.location.protocol !== 'file:') {
-                    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
-                        .catch(e => console.warn("Firebase Auth persistence:", e));
-                }
-                
-                // Do not auto-restore previous sessions in desktop app
-                firebase.auth().onAuthStateChanged(async function(user) {
-                    if (isDesktopEnvironment()) {
-                        if (!currentAdminUser && user) {
-                            await firebase.auth().signOut().catch(()=>{});
-                        }
-                    } else {
-                        // Web environment
-                        if (user && user.email) {
-                            const userEmail = user.email.toLowerCase().trim();
-                            if (!isAuthorizedAdminEmail(userEmail)) {
-                                await firebase.auth().signOut();
-                                currentAdminUser = null;
-                                updateAdminAuthUI(null);
-                                return;
-                            }
-                            currentAdminUser = user;
-                            updateAdminAuthUI(user);
-                            startFirestoreListener();
-                        }
-                    }
-                });
-            } catch(e) {
-                console.error("Firebase Auth init error:", e);
-            }
-        }
-
-        // Firestore real-time listener starts immediately for data
-        if (!entriesUnsubscribe) {
-            startFirestoreListener();
-        }
-
-        // Desktop launch: Auto-prompt PIN unlock (or Google activation if new device)
-        if (isDesktopEnvironment()) {
-            setTimeout(() => {
-                if (!currentAdminUser) {
-                    openAdminAuthModal('');
-                }
-            }, 600);
-        }
-    }
-
-    function updateAdminAuthUI(user) {
-        const icon = document.getElementById('adminAuthIcon');
-        const statusLabel = document.getElementById('adminAuthStatusLabel');
-        const emailLabel = document.getElementById('adminAuthEmailLabel');
-        const actionBtn = document.getElementById('adminAuthActionBtn');
-
-        if (user && user.email && isAuthorizedAdminEmail(user.email)) {
-            if (icon) icon.textContent = '🛡️';
-            if (statusLabel) {
-                statusLabel.textContent = 'Admin Shield';
-                statusLabel.style.color = '#38bdf8';
-            }
-            if (emailLabel) {
-                emailLabel.textContent = user.email;
-                emailLabel.style.color = '#34d399';
-                emailLabel.title = user.email;
-            }
-            if (actionBtn) {
-                actionBtn.textContent = 'Logout';
-                actionBtn.style.background = 'rgba(239, 68, 68, 0.15)';
-                actionBtn.style.borderColor = '#ef4444';
-                actionBtn.style.color = '#f87171';
-            }
-        } else {
-            if (icon) icon.textContent = '🔒';
-            if (statusLabel) {
-                statusLabel.textContent = 'Admin Shield';
-                statusLabel.style.color = '#94a3b8';
-            }
-            if (emailLabel) {
-                emailLabel.textContent = 'Locked';
-                emailLabel.style.color = '#f87171';
-                emailLabel.title = 'Protected by Admin Login';
-            }
-            if (actionBtn) {
-                actionBtn.textContent = 'Login';
-                actionBtn.style.background = 'rgba(56, 189, 248, 0.15)';
-                actionBtn.style.borderColor = '#38bdf8';
-                actionBtn.style.color = '#38bdf8';
-            }
-        }
-    }
-
-    function handleAdminAuthButtonClick() {
-        const authUser = (typeof firebase !== 'undefined' && firebase.auth) ? firebase.auth().currentUser : currentAdminUser;
-        if (authUser && isAuthorizedAdminEmail(authUser.email)) {
-            showAppConfirm(
-                `ଆପଣ Admin Account (${authUser.email}) ରୁ Logout କରିବାକୁ ଚାହୁଁଛନ୍ତି କି? Logout ହେଲେ Protected Data ପୁଣି ଲକ୍ ହୋଇଯିବ।`,
-                "Admin Logout",
-                function() {
-                    try {
-                        sessionStorage.removeItem('phoenix_admin_verified_email');
-                    } catch(e) {}
-                    if (typeof firebase !== 'undefined' && firebase.auth) {
-                        firebase.auth().signOut().catch(e => console.warn("signOut:", e));
-                    }
-                    currentAdminUser = null;
-                    updateAdminAuthUI(null);
-                    // Close open protected sheets
-                    if (document.getElementById('dynamicSheetModal')) document.getElementById('dynamicSheetModal').style.display = 'none';
-                    if (document.getElementById('monthlySavingModal')) document.getElementById('monthlySavingModal').style.display = 'none';
-                    if (document.getElementById('appDataModal')) document.getElementById('appDataModal').style.display = 'none';
-                    if (document.getElementById('studioModal')) document.getElementById('studioModal').style.display = 'none';
-                    showAppMessage("Admin ସଫଳତାର ସହ Logout ହୋଇଗଲା। Protected Data ବର୍ତ୍ତମାନ ଲକ୍ ଅଛି।", "success", "Logout Done");
-                },
-                null,
-                "Logout",
-                "Cancel"
-            );
-        } else {
-            openAdminAuthModal('');
-        }
-    }
-
-    function toggleAdminAuthSection(mode) {
-        adminAuthMode = mode;
-        const loginSec = document.getElementById('admin-login-section');
-        const regSec = document.getElementById('admin-register-section');
-        const tabLogin = document.getElementById('tabAdminLogin');
-        const tabReg = document.getElementById('tabAdminRegister');
-        const msg = document.getElementById('adminAuthMsg');
-        if (msg) msg.innerHTML = '';
-
-        if (mode === 'register') {
-            if (loginSec) loginSec.style.display = 'none';
-            if (regSec) regSec.style.display = 'flex';
-            if (tabLogin) {
-                tabLogin.style.background = 'transparent';
-                tabLogin.style.color = '#94a3b8';
-            }
-            if (tabReg) {
-                tabReg.style.background = '#10b981';
-                tabReg.style.color = '#ffffff';
-            }
-            const regEmail = document.getElementById('adminRegisterEmail');
-            if (regEmail) regEmail.focus();
-        } else {
-            if (loginSec) loginSec.style.display = 'flex';
-            if (regSec) regSec.style.display = 'none';
-            if (tabLogin) {
-                tabLogin.style.background = '#0284c7';
-                tabLogin.style.color = '#ffffff';
-            }
-            if (tabReg) {
-                tabReg.style.background = 'transparent';
-                tabReg.style.color = '#94a3b8';
-            }
-            const loginEmail = document.getElementById('adminLoginEmail');
-            if (loginEmail) loginEmail.focus();
-        }
-    }
-
-    function togglePasswordVisibility(inputId, iconId) {
-        const input = document.getElementById(inputId);
-        const icon = document.getElementById(iconId);
-        if (!input) return;
-        if (input.type === 'password') {
-            input.type = 'text';
-            if (icon) {
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-                icon.style.color = '#38bdf8';
-            }
-        } else {
-            input.type = 'password';
-            if (icon) {
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-                icon.style.color = '#64748b';
-            }
-        }
-    }
-
-    function openAdminAuthModal(typeName) {
-        pendingTargetType = (typeName && typeName !== 'Admin Panel') ? typeName : '';
-        const badge = document.getElementById('adminAuthTargetBadge');
-        if (badge) {
-            badge.textContent = pendingTargetType ? `Unlock Access: ${pendingTargetType}` : 'Studio PIN & Security';
-        }
-        const msg = document.getElementById('adminAuthMsg');
-        if (msg) msg.innerHTML = '';
-        
-        const isActivated = isDeviceActivated();
-        const pinView = document.getElementById('desktopPinUnlockView');
-        const activationView = document.getElementById('desktopDeviceActivationView');
-        const googleLinkWrap = document.getElementById('desktopGoogleLoginLinkWrap');
-
-        if (!isActivated) {
-            // Fresh install or uninstalled/reinstalled: PIN disabled! Must activate with Google first
-            if (pinView) pinView.style.display = 'none';
-            if (activationView) activationView.style.display = 'block';
-            if (googleLinkWrap) googleLinkWrap.style.display = 'none';
-        } else {
-            // Device already activated: Direct PIN unlock!
-            if (activationView) activationView.style.display = 'none';
-            if (pinView) pinView.style.display = 'block';
-            if (googleLinkWrap) googleLinkWrap.style.display = 'block';
-            setTimeout(() => {
-                const el = document.getElementById('desktopStudioPinInput');
-                if (el) el.focus();
-            }, 150);
-        }
-
-        const modal = document.getElementById('adminAuthModal');
-        if (modal) modal.style.display = 'flex';
-    }
-
-    function closeAdminAuthModal() {
-        const modal = document.getElementById('adminAuthModal');
-        if (modal) modal.style.display = 'none';
-    }
-
-    // Compatibility alias
-    function closePasswordModal() {
-        closeAdminAuthModal();
-    }
-
-    function getAuthFriendlyMessage(err) {
-        if (!err) return "ଅଜଣା ତ୍ରୁଟି (Unknown Error)";
-        const code = err.code || '';
-        if (code === 'auth/operation-not-supported-in-this-environment') {
-            return "Google Login ଲୋକାଲ ଫାଇଲ୍ (file://) ରେ ସମର୍ଥିତ ନୁହେଁ। Google OAuth ନିୟମ ଅନୁସାରେ ଏହା Live Web Link (HTTPS) କିମ୍ବା Localhost ରେ ଚାଲେ।";
-        }
-        if (code === 'auth/invalid-email') return "ଇମେଲ୍ ଠିକଣାଟି ସଠିକ୍ ନୁହେଁ। (Invalid Email Format)";
-        if (code === 'auth/user-not-found') return "ଏହି ଇମେଲ୍ ରେ କୌଣସି ଆକାଉଣ୍ଟ ମିଳିଲା ନାହିଁ। ଦୟାକରି 'New Setup' ରେ Register କରନ୍ତୁ କିମ୍ବା Google Login ବ୍ୟବହାର କରନ୍ତୁ।";
-        if (code === 'auth/wrong-password') return "ଭୁଲ୍ Password! ଦୟାକରି ସଠିକ୍ ପାସୱାର୍ଡ଼ ଦିଅନ୍ତୁ।";
-        if (code === 'auth/invalid-credential') return "ଇମେଲ୍ କିମ୍ବା ପାସୱାର୍ଡ଼ ଭୁଲ୍ ଅଛି।";
-        if (code === 'auth/email-already-in-use') return "ଏହି ଇମେଲ୍ ପୂର୍ବରୁ Register ହୋଇସାରିଛି। ଦୟାକରି Login କରନ୍ତୁ।";
-        if (code === 'auth/weak-password') return "ପାସୱାର୍ଡ଼ ବହୁତ କମ୍ ଅଛି, ଅତି କମରେ 6 ଟି ଅକ୍ଷର ଦିଅନ୍ତୁ।";
-        if (code === 'auth/operation-not-allowed') return "Firebase Console ରେ Google କିମ୍ବା Email Provider Enable ହୋଇନାହିଁ। ଦୟାକରି Console ରେ ଏହାକୁ Turn ON କରନ୍ତୁ।";
-        if (code === 'auth/too-many-requests') return "ବାରମ୍ବାର ଭୁଲ୍ ଚେଷ୍ଟା ହୋଇଛି। କିଛି ସମୟ ପରେ ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।";
-        if (code === 'auth/popup-closed-by-user') return "Google Login ୱିଣ୍ଡୋ ବନ୍ଦ କରାଗଲା। ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।";
-        if (code === 'auth/cancelled-popup-request') return "ପୂର୍ବ ଅନୁରୋଧ ବାତିଲ କରାଗଲା।";
-        if (code === 'auth/account-exists-with-different-credential') return "ଏହି ଇମେଲ୍ ରେ ଅନ୍ୟ ଏକ ଉପାୟରେ ପୂର୍ବରୁ ଆକାଉଣ୍ଟ ଅଛି।";
-        if (code === 'auth/unauthorized-domain') return "ଏହି Domain କିମ୍ବା localhost Firebase Console ର Authorized Domains ରେ ଯୋଡ଼ା ନାହିଁ।";
-        if (code === 'auth/network-request-failed') return "ଇଣ୍ଟରନେଟ୍ ସଂଯୋଗ ଯାଞ୍ଚ କରନ୍ତୁ।";
-        return err.message || "ପ୍ରବେଶ ବିଫଳ ହେଲା।";
-    }
-
-    function isDesktopEnvironment() {
-        return !!(
-            window.IS_PHOENIX_DESKTOP === true ||
-            window.location.protocol === 'file:' ||
-            (window.navigator && window.navigator.userAgent && /Electron/i.test(window.navigator.userAgent)) ||
-            (window.process && window.process.versions && window.process.versions.electron)
-        );
-    }
+    // ==========================================
+    // STUDIO SECURITY, PIN & CLOUD STORAGE
+    // ==========================================
+    let cloudStudioPin = '';
+    let cloudStudioPinHash = '';
+    let studioPinUnsubscribe = null;
+    let studioPendingDeletion = '';
 
     function hashStudioPin(pin) {
         if (!pin) return '';
@@ -4122,9 +3812,14 @@
         return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(16);
     }
 
-    // PIN state is memory-only: Firebase stores the hash and no browser copy is kept.
-    let cloudStudioPinHash = '';
-    let studioPinUnsubscribe = null;
+    function verifyPin(inputVal) {
+        if (!inputVal) return false;
+        const clean = inputVal.toString().trim();
+        if (cloudStudioPin && clean === cloudStudioPin) return true;
+        if (cloudStudioPinHash && hashStudioPin(clean) === cloudStudioPinHash) return true;
+        return false;
+    }
+
     function syncStudioPinFromCloud() {
         try {
             if (typeof firebase !== 'undefined' && firebase.firestore) {
@@ -4133,7 +3828,8 @@
                         .onSnapshot((doc) => {
                             if (!doc.exists) return;
                             const data = doc.data();
-                            cloudStudioPinHash = String(data.pin_hash || '');
+                            cloudStudioPin = String(data.current_pin || data.pin || '');
+                            cloudStudioPinHash = String(data.pin_hash || (cloudStudioPin ? hashStudioPin(cloudStudioPin) : ''));
                         }, (err) => console.warn("Firestore pin sync error:", err));
                 }
             }
@@ -4142,129 +3838,263 @@
         }
     }
 
-    function togglePinModalMode() {
-        const unlockView = document.getElementById('desktopPinUnlockView');
+    let isAdminAuthInitialized = false;
+    function initAdminAuth() {
+        if (isAdminAuthInitialized) return;
+        isAdminAuthInitialized = true;
+
+        if (typeof syncStudioPinFromCloud === 'function') {
+            syncStudioPinFromCloud();
+        }
+
+        // Firestore real-time listener for studio data starts immediately
+        if (!entriesUnsubscribe) {
+            startFirestoreListener();
+        }
+    }
+
+    // DIRECT OPEN: Balance Sheet, Monthly Saving, App Data, and Studio folders open without any PIN
+    function requestPassword(typeName) {
+        openRequestedSheet(typeName);
+    }
+
+    function openStudioSheet(studioName) {
+        openRequestedSheet(studioName);
+    }
+
+    // STUDIO DELETION: Prompt PIN only when clicking Delete (trash icon)
+    function promptDeleteStudio(studioName, event) {
+        if (event) event.stopPropagation();
+        const sName = String(studioName || '').trim();
+        if (!sName) return;
+
+        studioPendingDeletion = sName;
+        openStudioDeletePinModal(sName);
+    }
+
+    function openStudioDeletePinModal(sName) {
+        studioPendingDeletion = sName;
+        const badge = document.getElementById('adminAuthTargetBadge');
+        if (badge) badge.innerHTML = '<i class="fa-solid fa-trash-can"></i> Confirm Deletion';
+
+        const pText = document.getElementById('deleteStudioPromptText');
+        if (pText) pText.textContent = `Enter Studio PIN to permanently delete "${sName}":`;
+
+        const delView = document.getElementById('studioDeletePinView');
+        const chgView = document.getElementById('desktopChangePinView');
+        if (delView) delView.style.display = 'block';
+        if (chgView) chgView.style.display = 'none';
+
         const msg = document.getElementById('adminAuthMsg');
         if (msg) msg.innerHTML = '';
-        if (unlockView) unlockView.style.display = 'block';
-        setTimeout(() => {
-            const el = document.getElementById('desktopStudioPinInput');
-            if (el) el.focus();
-        }, 100);
-    }
-    window.togglePinModalMode = togglePinModalMode;
 
-    function submitStudioPinUnlock() {
-        if (!isDeviceActivated()) {
-            alert("⛔ ନୂଆ Software Install ରେ ସୁରକ୍ଷା ପାଇଁ ପ୍ରଥମେ Google Verification ଦେଇ Device Activate କରନ୍ତୁ। PIN କାମ କରିବ ନାହିଁ।");
-            openAdminAuthModal(pendingTargetType);
+        const pinInput = document.getElementById('deleteStudioPinInput');
+        if (pinInput) pinInput.value = '';
+
+        const modal = document.getElementById('adminAuthModal');
+        if (modal) modal.style.display = 'flex';
+
+        setTimeout(() => {
+            if (pinInput) pinInput.focus();
+        }, 150);
+    }
+
+    function submitStudioDeleteWithPin() {
+        const input = document.getElementById('deleteStudioPinInput');
+        const pinVal = input ? input.value.trim() : '';
+        const msg = document.getElementById('adminAuthMsg');
+
+        if (!pinVal) {
+            if (msg) msg.innerHTML = '<span style="color: #ef4444;">Please enter your Studio PIN!</span>';
             return;
         }
 
-        const input = document.getElementById('desktopStudioPinInput');
+        if (!verifyPin(pinVal)) {
+            if (msg) msg.innerHTML = '<span style="color: #ef4444;">❌ Incorrect PIN! Cannot delete studio.</span>';
+            return;
+        }
+
+        const sName = studioPendingDeletion;
+        studioPendingDeletion = '';
+        closeAdminAuthModal();
+
+        executeDeleteStudio(sName);
+    }
+    window.submitStudioDeleteWithPin = submitStudioDeleteWithPin;
+
+    function executeDeleteStudio(sName) {
+        if (!sName) return;
+
+        // 1. Remove from dynamicStudios and record in deletedStudios
+        dynamicStudios = dynamicStudios.filter(s => s.toLowerCase() !== sName.toLowerCase());
+        if (!deletedStudios.some(d => d.toLowerCase() === sName.toLowerCase())) {
+            deletedStudios.push(sName);
+        }
+        try {
+            localStorage.setItem("phoenix_deleted_studios", JSON.stringify(deletedStudios));
+        } catch(e) {}
+        saveStudios();
+
+        // 2. Also remove all entries associated with this studio
+        const studioEntries = (cachedEntries || []).filter(e => {
+            const s = String(e.studio || e.sourceStudio || '').trim().toLowerCase();
+            return s === sName.toLowerCase() || (e.name && e.name.toLowerCase().includes('(' + sName.toLowerCase() + ')'));
+        });
+
+        if (isFirebaseActive && db) {
+            const deletePromises = studioEntries.map(e => db.collection("entries").doc(e.id).delete());
+            Promise.all(deletePromises)
+                .then(() => {
+                    renderStudioSelectors();
+                    refreshOpenModals();
+                    showAppMessage(`Studio "${sName}" and all associated data deleted successfully!`, "success", "Deleted");
+                })
+                .catch(err => {
+                    console.error("Studio delete error:", err);
+                    renderStudioSelectors();
+                    refreshOpenModals();
+                    showAppMessage(`Studio "${sName}" deleted!`, "success", "Deleted");
+                });
+        } else {
+            studioEntries.forEach(se => {
+                const idx = cachedEntries.findIndex(e => String(e.id) === String(se.id));
+                if (idx !== -1) cachedEntries.splice(idx, 1);
+            });
+            saveLocalEntries();
+            renderStudioSelectors();
+            refreshOpenModals();
+            showAppMessage(`Studio "${sName}" deleted successfully!`, "success", "Deleted");
+        }
+    }
+
+    // ==========================================
+    // CHANGE PIN (OLD PIN -> NEW PIN)
+    // ==========================================
+    function openChangePinModal() {
+        const badge = document.getElementById('adminAuthTargetBadge');
+        if (badge) badge.innerHTML = '<i class="fa-solid fa-key"></i> Security Settings';
+
+        const delView = document.getElementById('studioDeletePinView');
+        const chgView = document.getElementById('desktopChangePinView');
+        const step1 = document.getElementById('changePinStep1');
+        const step2 = document.getElementById('changePinStep2');
+
+        if (delView) delView.style.display = 'none';
+        if (chgView) chgView.style.display = 'block';
+
+        const msg = document.getElementById('adminAuthMsg');
+        if (msg) msg.innerHTML = '';
+
+        // If no pin is currently set in Firebase, go directly to Step 2
+        if (!cloudStudioPin && !cloudStudioPinHash) {
+            if (step1) step1.style.display = 'none';
+            if (step2) step2.style.display = 'block';
+            setTimeout(() => {
+                const p1 = document.getElementById('newStudioPinInput');
+                if (p1) p1.focus();
+            }, 150);
+        } else {
+            if (step1) step1.style.display = 'block';
+            if (step2) step2.style.display = 'none';
+            const oldInput = document.getElementById('oldStudioPinInput');
+            if (oldInput) oldInput.value = '';
+            setTimeout(() => {
+                if (oldInput) oldInput.focus();
+            }, 150);
+        }
+
+        const modal = document.getElementById('adminAuthModal');
+        if (modal) modal.style.display = 'flex';
+    }
+    window.openChangePinModal = openChangePinModal;
+
+    function verifyOldPinForChange() {
+        const input = document.getElementById('oldStudioPinInput');
         const val = input ? input.value.trim() : '';
         const msg = document.getElementById('adminAuthMsg');
 
         if (!val) {
-            alert("ଦୟାକରି ଆପଣଙ୍କ PIN ଦିଅନ୍ତୁ!");
+            if (msg) msg.innerHTML = '<span style="color: #ef4444;">Please enter your Old PIN!</span>';
             return;
         }
 
-        if (!cloudStudioPinHash) {
-            if (msg) msg.innerHTML = '<span style="color: #fbbf24;"><i class="fa-solid fa-circle-info"></i> PIN Firebase ରେ ସେଭ୍ ହୋଇନାହିଁ। Google Verification କରି ପ୍ରଥମେ PIN ବନାନ୍ତୁ।</span>';
+        if (!cloudStudioPin && !cloudStudioPinHash) {
+            showChangePinStep2();
             return;
         }
 
-        if (hashStudioPin(val) === cloudStudioPinHash) {
-            // Direct Unlock with PIN! No Google verification needed!
-            currentAdminUser = {
-                email: 'jyotiprakashmohapatra63@gmail.com',
-                displayName: 'Jyotiprakash Mohapatra',
-                uid: 'pin-admin-' + Date.now()
-            };
-            try {
-                sessionStorage.setItem('phoenix_admin_verified_email', 'jyotiprakashmohapatra63@gmail.com');
-            } catch(e) {}
-            updateAdminAuthUI(currentAdminUser);
-            startFirestoreListener();
-            refreshOpenModals();
-            closeAdminAuthModal();
-            showAppMessage("🔓 PIN ଯାଞ୍ଚ ସଫଳ! ସଫ୍ଟୱେର୍ Unlock ହୋଇଗଲା।", "success", "Welcome");
-            if (pendingTargetType && pendingTargetType !== 'Admin Panel') {
-                const target = pendingTargetType;
-                pendingTargetType = '';
-                openRequestedSheet(target);
-            } else {
-                pendingTargetType = '';
-            }
+        if (verifyPin(val)) {
+            if (msg) msg.innerHTML = '<span style="color: #34d399;">Old PIN verified! Now enter your new PIN.</span>';
+            showChangePinStep2();
         } else {
-            alert("❌ ଭୁଲ୍ PIN! ଦୟାକରି ସଠିକ୍ PIN ଦିଅନ୍ତୁ।");
-            if (msg) {
-                msg.innerHTML = '<span style="color: #ef4444;"><i class="fa-solid fa-circle-xmark"></i> ଭୁଲ୍ PIN! ସଠିକ୍ PIN ଦିଅନ୍ତୁ କିମ୍ବା Reset କରନ୍ତୁ।</span>';
-            }
+            if (msg) msg.innerHTML = '<span style="color: #ef4444;">❌ Incorrect Old PIN!</span>';
         }
     }
-    window.submitStudioPinUnlock = submitStudioPinUnlock;
+    window.verifyOldPinForChange = verifyOldPinForChange;
 
-    function openDesktopBrowserLogin() {
-        const liveAuthUrl = 'https://jyotiprakashmohapatra63-creator.github.io/Phoenix-Edit-Point-HTML/?auth_target=desktop&port=54321&v=' + Date.now();
-        window.open(liveAuthUrl, '_blank');
+    function showChangePinStep2() {
+        const step1 = document.getElementById('changePinStep1');
+        const step2 = document.getElementById('changePinStep2');
+        if (step1) step1.style.display = 'none';
+        if (step2) step2.style.display = 'block';
+        const p1 = document.getElementById('newStudioPinInput');
+        const p2 = document.getElementById('confirmNewStudioPinInput');
+        if (p1) p1.value = '';
+        if (p2) p2.value = '';
+        setTimeout(() => {
+            if (p1) p1.focus();
+        }, 100);
+    }
 
+    function submitNewStudioPin() {
+        const p1 = (document.getElementById('newStudioPinInput').value || '').trim();
+        const p2 = (document.getElementById('confirmNewStudioPinInput').value || '').trim();
         const msg = document.getElementById('adminAuthMsg');
-        if (msg) {
-            msg.innerHTML = `
-                <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(56, 189, 248, 0.45); border-radius: 10px; padding: 14px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.6);">
-                    <div style="color: #38bdf8; font-weight: 700; font-size: 13.5px; margin-bottom: 6px;">
-                        <i class="fa-brands fa-chrome fa-spin" style="margin-right: 6px;"></i> Google Chrome ରେ Browser ଖୋଲିଲା...
-                    </div>
-                    <div style="color: #cbd5e1; font-size: 11.5px; line-height: 1.5; margin-bottom: 8px;">
-                        Chrome ୱିଣ୍ଡୋରେ ଆପଣଙ୍କ Gmail (jyotiprakashmohapatra63@gmail.com) ସହ Sign-in କରି PIN ସେଟ୍ କରନ୍ତୁ।
-                    </div>
-                    <div style="font-size: 11px; color: #94a3b8;">
-                        ପ୍ରମାଣିକରଣ ସରିବା ମାତ୍ରେ ଏହି Software ସ୍ୱୟଂଚାଳିତ ଭାବେ Activate ଏବଂ Unlock ହୋଇଯିବ।
-                    </div>
-                </div>
-            `;
+
+        if (!p1 || p1.length < 4 || p1.length > 6 || !/^\d+$/.test(p1)) {
+            if (msg) msg.innerHTML = '<span style="color: #ef4444;">Please enter a 4 to 6 digit numeric PIN!</span>';
+            return;
+        }
+        if (p1 !== p2) {
+            if (msg) msg.innerHTML = '<span style="color: #ef4444;">New PIN and Confirm PIN do not match!</span>';
+            return;
         }
 
-        // Ensure real-time cloud listener is running
-        syncStudioPinFromCloud();
-    }
-    window.openDesktopBrowserLogin = openDesktopBrowserLogin;
+        const pinHash = hashStudioPin(p1);
+        cloudStudioPin = p1;
+        cloudStudioPinHash = pinHash;
 
-    async function unlockAdminFromDesktopBridge(email, idToken, accessToken) {
-        if (!isAuthorizedAdminEmail(email)) return;
-
-        // Permanently activate this device on owner Google verification
-        try {
-            localStorage.setItem('phoenix_device_activated_owner', email.toLowerCase().trim());
-        } catch(e) {}
-
-        currentAdminUser = {
-            email: email,
-            displayName: 'Jyotiprakash Mohapatra',
-            uid: 'desktop-admin-' + Date.now()
-        };
-
-        // In-session login (auto-cleared when software window is closed)
-        try {
-            sessionStorage.setItem('phoenix_admin_verified_email', email);
-        } catch(e) {}
-
-        updateAdminAuthUI(currentAdminUser);
-        startFirestoreListener();
-        refreshOpenModals();
-        closeAdminAuthModal();
-        showAppMessage("🎉 Google Verification ସଫଳ! Device Activate ଏବଂ Unlock ହୋଇଗଲା।", "success", "Admin Verified");
-        if (pendingTargetType && pendingTargetType !== 'Admin Panel') {
-            const target = pendingTargetType;
-            pendingTargetType = '';
-            openRequestedSheet(target);
-        } else {
-            pendingTargetType = '';
+        // Save in Firebase in phoenix_security > studio_auth and admin_pin
+        // Visible and editable in Firebase Console website!
+        if (typeof firebase !== 'undefined' && firebase.firestore) {
+            try {
+                const dataToSave = {
+                    current_pin: p1,
+                    pin: p1,
+                    pin_hash: pinHash,
+                    owner_email: 'jyotiprakashmohapatra63@gmail.com',
+                    updated_at: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                firebase.firestore().collection('phoenix_security').doc('studio_auth').set(dataToSave, { merge: true }).catch(err => console.warn(err));
+                firebase.firestore().collection('phoenix_security').doc('admin_pin').set(dataToSave, { merge: true }).catch(err => console.warn(err));
+            } catch(e) {}
         }
+
+        if (msg) msg.innerHTML = '<span style="color: #34d399;">🎉 PIN successfully updated!</span>';
+        showAppMessage("PIN successfully updated and saved to Firebase!", "success", "PIN Changed");
+        setTimeout(() => {
+            closeAdminAuthModal();
+        }, 1200);
     }
-    window.unlockAdminFromDesktopBridge = unlockAdminFromDesktopBridge;
+    window.submitNewStudioPin = submitNewStudioPin;
+
+    function closeAdminAuthModal() {
+        const modal = document.getElementById('adminAuthModal');
+        if (modal) modal.style.display = 'none';
+        studioPendingDeletion = '';
+    }
+    window.closeAdminAuthModal = closeAdminAuthModal;
+    window.closePasswordModal = closeAdminAuthModal;
 
     function runDirectBrowserPopupLogin() {
         const msg = document.getElementById('adminAuthMsg');
