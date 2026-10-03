@@ -6049,6 +6049,65 @@
         }, 3000);
     }
 
+    // All payment posters are exported in the social-media 9:16 format.
+    // A blurred branded backdrop fills any side space while the complete
+    // payment card remains readable in the centre.
+    async function makeNineBySixteenPoster(sourceBlob) {
+        if (!sourceBlob) throw new Error('Poster image is not ready');
+
+        const sourceUrl = URL.createObjectURL(sourceBlob);
+        try {
+            const sourceImage = await new Promise((resolve, reject) => {
+                const image = new Image();
+                image.onload = () => resolve(image);
+                image.onerror = () => reject(new Error('Could not prepare poster image'));
+                image.src = sourceUrl;
+            });
+
+            const width = 1080;
+            const height = 1920;
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const context = canvas.getContext('2d');
+
+            context.fillStyle = '#070706';
+            context.fillRect(0, 0, width, height);
+
+            // Soft blurred version of the poster fills the 9:16 backdrop.
+            const coverScale = Math.max(width / sourceImage.width, height / sourceImage.height);
+            const coverWidth = sourceImage.width * coverScale;
+            const coverHeight = sourceImage.height * coverScale;
+            context.save();
+            context.filter = 'blur(34px) brightness(0.36) saturate(0.8)';
+            context.drawImage(sourceImage, (width - coverWidth) / 2, (height - coverHeight) / 2, coverWidth, coverHeight);
+            context.restore();
+
+            const shade = context.createLinearGradient(0, 0, 0, height);
+            shade.addColorStop(0, 'rgba(0,0,0,0.28)');
+            shade.addColorStop(0.5, 'rgba(0,0,0,0.06)');
+            shade.addColorStop(1, 'rgba(0,0,0,0.42)');
+            context.fillStyle = shade;
+            context.fillRect(0, 0, width, height);
+
+            // Keep the full source poster visible, without stretching it.
+            const containScale = Math.min((width - 72) / sourceImage.width, (height - 72) / sourceImage.height);
+            const posterWidth = Math.round(sourceImage.width * containScale);
+            const posterHeight = Math.round(sourceImage.height * containScale);
+            const posterX = Math.round((width - posterWidth) / 2);
+            const posterY = Math.round((height - posterHeight) / 2);
+            context.shadowColor = 'rgba(0,0,0,0.82)';
+            context.shadowBlur = 36;
+            context.drawImage(sourceImage, posterX, posterY, posterWidth, posterHeight);
+
+            const output = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+            if (!output) throw new Error('Could not create 9:16 poster');
+            return output;
+        } finally {
+            URL.revokeObjectURL(sourceUrl);
+        }
+    }
+
     async function downloadQrOnly() {
         try {
             const canvas = document.getElementById('qrCanvas');
@@ -6209,6 +6268,7 @@
             }
 
             if (!blob) throw new Error("Could not create poster image");
+            blob = await makeNineBySixteenPoster(blob);
 
             await saveImageBlob(blob, `Phoenix_Payment_Slate_${Date.now()}.png`);
             showAppMessage("Payment Slate Poster saved successfully.", "success", "Slate Downloaded");
@@ -6265,6 +6325,7 @@
             }
 
             if (photoBlob) {
+                photoBlob = await makeNineBySixteenPoster(photoBlob);
                 const photoFile = new File([photoBlob], `Phoenix_Payment_Slate_${Date.now()}.png`, { type: 'image/png' });
 
                 // Capacitor's Android WebView does not reliably implement the
