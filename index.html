@@ -6252,7 +6252,18 @@
                         useCORS: true,
                         allowTaint: true,
                         backgroundColor: '#110e0c',
-                        logging: false
+                        logging: false,
+                        width: card.scrollWidth,
+                        height: card.scrollHeight,
+                        windowHeight: card.scrollHeight,
+                        onclone: (clonedDocument) => {
+                            const clonedCard = clonedDocument.getElementById('paymentCard');
+                            if (clonedCard) {
+                                clonedCard.style.height = 'auto';
+                                clonedCard.style.maxHeight = 'none';
+                                clonedCard.style.overflow = 'visible';
+                            }
+                        }
                     });
 
                     if (posterCanvas) {
@@ -6311,7 +6322,18 @@
                         useCORS: true,
                         allowTaint: true,
                         backgroundColor: '#110e0c',
-                        logging: false
+                        logging: false,
+                        width: paymentCard.scrollWidth,
+                        height: paymentCard.scrollHeight,
+                        windowHeight: paymentCard.scrollHeight,
+                        onclone: (clonedDocument) => {
+                            const clonedCard = clonedDocument.getElementById('paymentCard');
+                            if (clonedCard) {
+                                clonedCard.style.height = 'auto';
+                                clonedCard.style.maxHeight = 'none';
+                                clonedCard.style.overflow = 'visible';
+                            }
+                        }
                     });
                     if (posterCanvas) {
                         photoBlob = await new Promise(resolve => posterCanvas.toBlob(resolve, 'image/png'));
