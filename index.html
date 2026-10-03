@@ -4186,17 +4186,17 @@
     // DESKTOP BROWSER GOOGLE ACTIVATION
     // ------------------------------------------
     function openDesktopBrowserLogin() {
-        if (typeof runDirectBrowserPopupLogin === 'function') {
-            runDirectBrowserPopupLogin();
-            return;
-        }
         const bridgeUrl = 'https://jyotiprakashmohapatra63-creator.github.io/Phoenix-Edit-Point-HTML/?auth_target=desktop&port=54321';
-        try { window.open(bridgeUrl, '_blank'); } catch(e) { window.location.href = bridgeUrl; }
+        try {
+            window.open(bridgeUrl, '_blank');
+        } catch(e) {
+            window.location.href = bridgeUrl;
+        }
     }
     window.openDesktopBrowserLogin = openDesktopBrowserLogin;
 
     // Called when desktop loopback or Firestore bridge signals successful Google Login
-    function unlockAdminFromDesktopBridge(verifiedEmail) {
+    function unlockAdminFromDesktopBridge(verifiedEmail, idToken, accessToken) {
         const email = (verifiedEmail || '').toLowerCase().trim();
         if (!isAuthorizedAdminEmail(email)) {
             showAppMessage(`Access Denied: ${email} is not authorized.`, "error", "Unauthorized");
@@ -4204,6 +4204,26 @@
         }
 
         markDeviceActivated(email);
+
+        if (idToken && typeof firebase !== "undefined" && firebase.auth) {
+            try {
+                const googleCred = firebase.auth.GoogleAuthProvider.credential(idToken, accessToken || null);
+                firebase.auth().signInWithCredential(googleCred).then((u) => {
+                    console.log("Firebase Auth signed in via real Google Account:", u.user.email);
+                    currentAdminUser = u.user;
+                    startFirestoreListener();
+                    syncStudioPinFromCloud();
+                    syncStudiosFromCloud();
+                }).catch(err => {
+                    console.warn("signInWithCredential:", err);
+                    startFirestoreListener();
+                });
+            } catch(e) {
+                startFirestoreListener();
+            }
+        } else {
+            startFirestoreListener();
+        }
 
         // Check if PIN exists in Firestore
         if (typeof firebase !== 'undefined' && firebase.firestore) {
@@ -4783,10 +4803,26 @@
         }
 
         // 2. Also try loopback ping via fetch and image beacon
+        const idToken = (credential && credential.idToken) ? credential.idToken : "";
+        const accessToken = (credential && credential.accessToken) ? credential.accessToken : "";
+        
         try {
-            fetch(`http://127.0.0.1:${desktopPort}/auth-callback?email=${encodeURIComponent(userEmail)}`, { mode: 'no-cors' }).catch(() => {});
+            fetch(`http://127.0.0.1:${desktopPort}/auth-callback`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: userEmail, id_token: idToken, access_token: accessToken })
+            }).catch(() => {});
+        } catch(e) {}
+
+        try {
+            const p = new URLSearchParams();
+            p.append("email", userEmail);
+            if (idToken) p.append("id_token", idToken);
+            if (accessToken) p.append("access_token", accessToken);
+            p.append("t", Date.now());
+            fetch(`http://127.0.0.1:${desktopPort}/auth-callback?${p.toString()}`, { mode: "no-cors" }).catch(() => {});
             const img = new Image();
-            img.src = `http://127.0.0.1:${desktopPort}/auth-callback?email=${encodeURIComponent(userEmail)}&t=${Date.now()}`;
+            img.src = `http://127.0.0.1:${desktopPort}/auth-callback?${p.toString()}`;
         } catch(e) {}
 
         // 3. Check if PIN already exists in Firebase
@@ -4917,10 +4953,26 @@
         }
 
         // Notify Desktop App that Google verification completed.
+        const idToken = (credential && credential.idToken) ? credential.idToken : "";
+        const accessToken = (credential && credential.accessToken) ? credential.accessToken : "";
+        
         try {
-            fetch(`http://127.0.0.1:${desktopPort}/auth-callback?email=${encodeURIComponent(userEmail)}`, { mode: 'no-cors' }).catch(() => {});
+            fetch(`http://127.0.0.1:${desktopPort}/auth-callback`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: userEmail, id_token: idToken, access_token: accessToken })
+            }).catch(() => {});
+        } catch(e) {}
+
+        try {
+            const p = new URLSearchParams();
+            p.append("email", userEmail);
+            if (idToken) p.append("id_token", idToken);
+            if (accessToken) p.append("access_token", accessToken);
+            p.append("t", Date.now());
+            fetch(`http://127.0.0.1:${desktopPort}/auth-callback?${p.toString()}`, { mode: "no-cors" }).catch(() => {});
             const img = new Image();
-            img.src = `http://127.0.0.1:${desktopPort}/auth-callback?email=${encodeURIComponent(userEmail)}&t=${Date.now()}`;
+            img.src = `http://127.0.0.1:${desktopPort}/auth-callback?${p.toString()}`;
         } catch(e) {}
 
         // 4. Show Success Screen
