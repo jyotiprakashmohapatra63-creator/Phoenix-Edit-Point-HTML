@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -2302,7 +2302,7 @@
 </div>
 
 <!-- SHARE CLIENT LINK MODAL (ADMIN ONLY) -->
-<div id="shareClientLinkModal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); z-index: 99999; justify-content: center; align-items: center; padding: 16px;">
+<div id="shareClientLinkModal" onclick="if (event.target === this) closeShareStudioLinkModal()" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; box-sizing: border-box; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 99999; justify-content: center; align-items: center; padding: 16px;">
     <div style="background: #111827; border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 14px; padding: 24px 26px; width: 100%; max-width: 520px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); position: relative;">
         <span onclick="closeShareStudioLinkModal()" style="position: absolute; right: 16px; top: 14px; color: #94a3b8; font-size: 24px; cursor: pointer; font-weight: bold; line-height: 1;">&times;</span>
         
@@ -2354,7 +2354,7 @@
 </div>
 
 <!-- CLIENT STATEMENT ACCESS / LOCK SCREEN MODAL (READ-ONLY VIEWERS) -->
-<div id="clientAuthModal" style="display: none; position: fixed; inset: 0; background: rgba(3, 7, 18, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 999999; justify-content: center; align-items: center; padding: 16px;">
+<div id="clientAuthModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; box-sizing: border-box; background: rgba(3, 7, 18, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 999999; justify-content: center; align-items: center; padding: 16px;">
     <div style="background: linear-gradient(180deg, #111827 0%, #0b0f19 100%); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 16px; padding: 32px 28px; width: 100%; max-width: 420px; text-align: center; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(14, 165, 233, 0.2);">
         <img src="PhoenixLOGO-full-v2.png" alt="Phoenix Edit Point" style="max-width: 220px; width: 100%; height: auto; max-height: 70px; object-fit: contain; margin: 0 auto 16px; display: block; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.8));" onerror="if(typeof PHOENIX_FULL_LOGO_DATA!=='undefined')this.src=PHOENIX_FULL_LOGO_DATA;">
         
@@ -2377,7 +2377,7 @@
         </button>
         
         <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.08); color: #64748b; font-size: 11.5px;">
-            ðŸ”’ Official Client Portal â€¢ Phoenix Edit Point
+            <i class="fa-solid fa-shield-halved"></i> Official Client Portal &bull; Phoenix Edit Point
         </div>
     </div>
 </div>
@@ -2690,6 +2690,7 @@
     let isFirebaseActive = false;
     let db = null;
     let dynamicStudios = ["WeClick", "Maa Tarini Studio"];
+    let currentOpenStudio = '';
     let isClientReadOnlyMode = false;
     let clientTargetStudio = '';
     let clientStudioPasswords = {};
@@ -2929,6 +2930,7 @@
     function changeStudioView(studioName) {
         const trimmed = String(studioName || '').trim();
         if (!trimmed) return;
+        currentOpenStudio = trimmed;
         document.getElementById('studioTitle').innerText = trimmed;
         fetchStudioSheetData(trimmed);
     }
@@ -5983,7 +5985,18 @@
     }
 
     function openStudioPaymentDesk() {
-        const curStudio = currentOpenStudio || (document.getElementById('modalStudioFilter') ? document.getElementById('modalStudioFilter').value : '');
+        let curStudio = "";
+        if (window.isClientReadOnlyMode && window.clientTargetStudio) {
+            curStudio = window.clientTargetStudio;
+        } else if (typeof currentOpenStudio !== 'undefined' && currentOpenStudio) {
+            curStudio = currentOpenStudio;
+        } else if (document.getElementById('modalStudioFilter') && document.getElementById('modalStudioFilter').value) {
+            curStudio = document.getElementById('modalStudioFilter').value.trim();
+        } else if (document.getElementById('studioTitle') && document.getElementById('studioTitle').innerText) {
+            curStudio = document.getElementById('studioTitle').innerText.trim();
+        }
+        if (!curStudio || curStudio === 'Studio Data') curStudio = 'WeClick';
+
         const dueEl = document.getElementById('studioTotalDue');
         let dueAmt = 0;
         if (dueEl) {
@@ -6569,8 +6582,15 @@
     // CLIENT UNIQUE LINK & PASSWORD MANAGEMENT
     // ==========================================
     function getStudioClientLink(studioName) {
-        let base = (window.LIVE_APP_URL || (window.location.origin + window.location.pathname));
-        base = base.split("?")[0];
+        let base = window.LIVE_APP_URL;
+        if (!base) {
+            if (window.location && window.location.href && window.location.href.startsWith("http")) {
+                base = window.location.origin + window.location.pathname;
+            } else {
+                base = "https://jyotiprakashmohapatra63-creator.github.io/Phoenix-Edit-Point-HTML/";
+            }
+        }
+        base = base.split("?")[0].split("#")[0];
         return `${base}?studio=${encodeURIComponent(studioName || "Studio")}&mode=client`;
     }
     window.getStudioClientLink = getStudioClientLink;
@@ -6578,7 +6598,17 @@
     function getStudioClientPassword(studioName) {
         if (!studioName) return "1234";
         const cleanKey = studioName.trim().toLowerCase();
-        return clientStudioPasswords[cleanKey] || "1234";
+        if (typeof clientStudioPasswords !== "undefined" && clientStudioPasswords && clientStudioPasswords[cleanKey]) {
+            return clientStudioPasswords[cleanKey];
+        }
+        try {
+            const local = localStorage.getItem("phoenix_studio_client_passwords");
+            if (local) {
+                const parsed = JSON.parse(local);
+                if (parsed && parsed[cleanKey]) return parsed[cleanKey];
+            }
+        } catch(e) {}
+        return "1234";
     }
     window.getStudioClientPassword = getStudioClientPassword;
 
@@ -6586,6 +6616,9 @@
         if (!studioName) return Promise.reject("Studio name is required");
         const cleanKey = studioName.trim().toLowerCase();
         const cleanPass = String(newPass || "").trim();
+        if (typeof clientStudioPasswords === "undefined") {
+            window.clientStudioPasswords = {};
+        }
         clientStudioPasswords[cleanKey] = cleanPass;
         try {
             localStorage.setItem("phoenix_studio_client_passwords", JSON.stringify(clientStudioPasswords));
@@ -6629,29 +6662,49 @@
     window.syncStudioClientPasswordsFromCloud = syncStudioClientPasswordsFromCloud;
 
     function openShareStudioLinkModal() {
-        const curStudio = currentOpenStudio || (document.getElementById("studioTitle") ? document.getElementById("studioTitle").innerText.trim() : "") || "WeClick";
-        const modal = document.getElementById("shareClientLinkModal");
-        if (!modal) return;
+        try {
+            let curStudio = "";
+            const filterEl = document.getElementById("modalStudioFilter");
+            const titleEl = document.getElementById("studioTitle");
+            if (filterEl && filterEl.value && filterEl.value.trim()) {
+                curStudio = filterEl.value.trim();
+            } else if (titleEl && titleEl.innerText && titleEl.innerText.trim() && titleEl.innerText.trim() !== "Studio Data") {
+                curStudio = titleEl.innerText.trim();
+            } else if (typeof currentOpenStudio !== 'undefined' && currentOpenStudio) {
+                curStudio = currentOpenStudio;
+            }
+            if (!curStudio) curStudio = "WeClick";
+            currentOpenStudio = curStudio;
 
-        const nameEl = document.getElementById("shareModalStudioName");
-        if (nameEl) nameEl.innerText = curStudio;
+            const modal = document.getElementById("shareClientLinkModal");
+            if (!modal) {
+                console.error("shareClientLinkModal not found in DOM");
+                return;
+            }
 
-        const linkInput = document.getElementById("shareStudioLinkInput");
-        if (linkInput) {
-            linkInput.value = getStudioClientLink(curStudio);
+            const nameEl = document.getElementById("shareModalStudioName");
+            if (nameEl) nameEl.innerText = curStudio;
+
+            const linkInput = document.getElementById("shareStudioLinkInput");
+            if (linkInput) {
+                linkInput.value = getStudioClientLink(curStudio);
+            }
+
+            const passInput = document.getElementById("shareStudioPasswordInput");
+            if (passInput) {
+                passInput.value = getStudioClientPassword(curStudio);
+            }
+
+            const notice = document.getElementById("sharePasswordSaveNotice");
+            if (notice) notice.innerHTML = "";
+            const copyBtn = document.getElementById("copyBtnText");
+            if (copyBtn) copyBtn.innerText = "Copy Link";
+
+            modal.style.display = "flex";
+        } catch (err) {
+            console.error("openShareStudioLinkModal error:", err);
+            alert("Could not open Share Link modal: " + (err && err.message ? err.message : err));
         }
-
-        const passInput = document.getElementById("shareStudioPasswordInput");
-        if (passInput) {
-            passInput.value = getStudioClientPassword(curStudio);
-        }
-
-        const notice = document.getElementById("sharePasswordSaveNotice");
-        if (notice) notice.innerHTML = "";
-        const copyBtn = document.getElementById("copyBtnText");
-        if (copyBtn) copyBtn.innerText = "Copy Link";
-
-        modal.style.display = "flex";
     }
     window.openShareStudioLinkModal = openShareStudioLinkModal;
 
@@ -6666,28 +6719,34 @@
         if (!linkInput) return;
         linkInput.select();
         linkInput.setSelectionRange(0, 99999);
-        try {
-            navigator.clipboard.writeText(linkInput.value).then(() => {
-                const btn = document.getElementById("copyBtnText");
-                if (btn) btn.innerText = "âœ… Copied!";
-                showAppMessage("Client link copied to clipboard!", "success", "Link Copied");
-                setTimeout(() => {
-                    if (btn) btn.innerText = "Copy Link";
-                }, 2500);
-            });
-        } catch(e) {
-            document.execCommand("copy");
+        const linkVal = linkInput.value;
+
+        function onCopied() {
             const btn = document.getElementById("copyBtnText");
-            if (btn) btn.innerText = "âœ… Copied!";
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+            if (typeof showAppMessage === "function") {
+                showAppMessage("Client link copied to clipboard!", "success", "Link Copied");
+            }
             setTimeout(() => {
-                if (btn) btn.innerText = "Copy Link";
+                if (btn) btn.innerHTML = 'Copy Link';
             }, 2500);
+        }
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(linkVal).then(onCopied).catch(() => {
+                document.execCommand("copy");
+                onCopied();
+            });
+        } else {
+            document.execCommand("copy");
+            onCopied();
         }
     }
     window.copyShareStudioLink = copyShareStudioLink;
 
     function saveCurrentStudioPasswordFromModal() {
-        const curStudio = document.getElementById("shareModalStudioName").innerText.trim();
+        const nameEl = document.getElementById("shareModalStudioName");
+        const curStudio = (nameEl ? nameEl.innerText.trim() : "") || (typeof currentOpenStudio !== 'undefined' ? currentOpenStudio : "Studio");
         const passInput = document.getElementById("shareStudioPasswordInput");
         const newPass = passInput ? passInput.value.trim() : "";
         const notice = document.getElementById("sharePasswordSaveNotice");
@@ -6702,7 +6761,9 @@
         saveStudioClientPassword(curStudio, newPass)
             .then(() => {
                 if (notice) notice.innerHTML = "<span style=\"color: #10b981;\"><i class=\"fa-solid fa-check\"></i> Password saved successfully for " + escapeHtml(curStudio) + "!</span>";
-                showAppMessage("Password for " + curStudio + " saved!", "success", "Password Updated");
+                if (typeof showAppMessage === "function") {
+                    showAppMessage("Password for " + curStudio + " saved!", "success", "Password Updated");
+                }
             })
             .catch(err => {
                 console.warn(err);
@@ -6712,13 +6773,14 @@
     window.saveCurrentStudioPasswordFromModal = saveCurrentStudioPasswordFromModal;
 
     function shareStudioLinkViaWhatsApp() {
-        const currentStudio = document.getElementById("shareModalStudioName").innerText.trim() || "Studio";
+        const nameEl = document.getElementById("shareModalStudioName");
+        const currentStudio = (nameEl ? nameEl.innerText.trim() : "") || (typeof currentOpenStudio !== 'undefined' ? currentOpenStudio : "Studio");
         const linkInput = document.getElementById("shareStudioLinkInput");
-        const link = linkInput ? linkInput.value : "";
+        const link = linkInput ? linkInput.value : getStudioClientLink(currentStudio);
         const passInput = document.getElementById("shareStudioPasswordInput");
-        const pass = passInput ? passInput.value.trim() : "1234";
+        const pass = passInput ? passInput.value.trim() : getStudioClientPassword(currentStudio);
 
-        const text = `Hello *${currentStudio}*,\n\nPlease find your account statement from *Phoenix Edit Point*:\nðŸ”— *Statement Link:* ${link}\nðŸ”‘ *Access Password:* ${pass}\n\n_You can view your work list, delivery status, remaining balance, and pay directly via UPI._`;
+        const text = `Hello *${currentStudio}*,\n\nPlease find your account statement from *Phoenix Edit Point*:\n\n*Statement Link:* ${link}\n*Access Password:* ${pass}\n\n_You can view your work list, delivery status, remaining balance, and pay directly via UPI._`;
         const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
         window.open(waUrl, "_blank");
     }
