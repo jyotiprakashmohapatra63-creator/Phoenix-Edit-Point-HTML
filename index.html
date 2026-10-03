@@ -6755,12 +6755,8 @@
         });
         var totalDue = Math.max(0, totalAmount - totalReceived);
 
-        var docData = {
+        var rawPayload = {
             studio: studioName,
-            docKey: docKey,
-            password: pwd,
-            passwordHash: hashStudioPassword(pwd),
-            updatedAt: (typeof firebase !== 'undefined' && firebase.firestore) ? firebase.firestore.FieldValue.serverTimestamp() : new Date().toISOString(),
             totalProjects: studioRows.length,
             totalAmount: totalAmount,
             totalReceived: totalReceived,
@@ -6784,7 +6780,25 @@
             })
         };
 
+        var encryptedCipher = packStudioPayload(rawPayload, pwd);
+
+        var docData = {
+            studio: studioName,
+            docKey: docKey,
+            passwordHash: hashStudioPassword(pwd),
+            encryptedData: encryptedCipher,
+            totalProjects: studioRows.length,
+            totalAmount: totalAmount,
+            totalReceived: totalReceived,
+            totalDue: totalDue,
+            entries: rawPayload.entries,
+            updatedAt: (typeof firebase !== 'undefined' && firebase.firestore) ? firebase.firestore.FieldValue.serverTimestamp() : new Date().toISOString()
+        };
+
         if (typeof firebase !== 'undefined' && firebase.firestore) {
+            // Delete plain text password field from Firestore
+            docData.password = firebase.firestore.FieldValue.delete();
+
             return firebase.firestore().collection("public_statements").doc(docKey).set(docData, { merge: true })
             .then(function() {
                 console.log("Statement published live to Google Cloud for: " + studioName + " (" + docKey + ")");
@@ -6951,15 +6965,17 @@
             // Live fetch saved password from Cloud Database for this studio
             if (typeof firebase !== 'undefined' && firebase.firestore) {
                 var docKey = getStudioDocKey(curStudio);
-                firebase.firestore().collection("public_statements").doc(docKey).get().then(function(doc) {
-                    if (doc.exists && doc.data() && doc.data().password) {
-                        var cloudPass = String(doc.data().password).trim();
-                        var pInput = document.getElementById("shareStudioPasswordInput");
-                        if (pInput) pInput.value = cloudPass;
-                        clientStudioPasswords[docKey] = cloudPass;
-                        clientStudioPasswords[curStudio.trim().toLowerCase()] = cloudPass;
-                        try { localStorage.setItem("phoenix_studio_client_passwords", JSON.stringify(clientStudioPasswords)); } catch(e){}
-                        if (notice) notice.innerHTML = '<span style="color: #38bdf8;"><i class="fa-solid fa-cloud"></i> Synced with Cloud password: <b>' + escapeHtml(cloudPass) + '</b></span>';
+                firebase.firestore().collection("phoenix_security").doc("studio_client_passwords").get().then(function(secDoc) {
+                    if (secDoc && secDoc.exists && secDoc.data()) {
+                        var cloudPass = secDoc.data()[docKey] || secDoc.data()[curStudio.trim().toLowerCase()];
+                        if (cloudPass) {
+                            var pInput = document.getElementById("shareStudioPasswordInput");
+                            if (pInput) pInput.value = cloudPass;
+                            clientStudioPasswords[docKey] = cloudPass;
+                            clientStudioPasswords[curStudio.trim().toLowerCase()] = cloudPass;
+                            try { localStorage.setItem("phoenix_studio_client_passwords", JSON.stringify(clientStudioPasswords)); } catch(e){}
+                            if (notice) notice.innerHTML = '<span style="color: #38bdf8;"><i class="fa-solid fa-cloud"></i> Synced with Cloud password: <b>' + escapeHtml(cloudPass) + '</b></span>';
+                        }
                     }
                 }).catch(function(e) { console.warn("Live fetch password notice:", e); });
             }
@@ -7166,8 +7182,20 @@
                 })
                 .then(function(matchedData) {
                     if (matchedData) {
-                        if (Array.isArray(matchedData.entries)) {
+                        var decryptedRows = null;
+                        if (matchedData.encryptedData) {
+                            var unpacked = unpackStudioPayload(matchedData.encryptedData, val);
+                            if (unpacked && Array.isArray(unpacked.entries)) {
+                                decryptedRows = unpacked.entries;
+                            }
+                        }
+                        if (decryptedRows) {
+                            cachedEntries = decryptedRows;
+                        } else if (Array.isArray(matchedData.entries)) {
+                            // Backwards compatibility for older unencrypted statements
                             cachedEntries = matchedData.entries;
+                        } else {
+                            cachedEntries = [];
                         }
                         try {
                             localStorage.setItem("phoenix_client_verified_pass_" + studio.toLowerCase(), val);
