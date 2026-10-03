@@ -532,6 +532,41 @@
             background-color: #990000;
         }
 
+        /* --- SHEET EDIT LOCK / UNLOCK BUTTON STYLES --- */
+        .sheet-lock-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            border: 1px solid;
+            font-family: inherit;
+        }
+        .sheet-lock-toggle-btn.locked {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: #ef4444;
+            color: #f87171;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+        }
+        .sheet-lock-toggle-btn.locked:hover {
+            background: #ef4444;
+            color: #ffffff;
+        }
+        .sheet-lock-toggle-btn.unlocked {
+            background: rgba(34, 197, 94, 0.18);
+            border-color: #22c55e;
+            color: #4ade80;
+            box-shadow: 0 0 12px rgba(34, 197, 94, 0.35);
+        }
+        .sheet-lock-toggle-btn.unlocked:hover {
+            background: #22c55e;
+            color: #ffffff;
+        }
+
         /* --- MAA TARINI STUDIO MODAL STYLES --- */
         #studioModal {
             display: none;
@@ -1848,6 +1883,26 @@
             </div>
         </div>
 
+        <!-- 0. SHEET EDIT / DELETE UNLOCK PIN VIEW -->
+        <div id="sheetUnlockPinView" style="display: none; padding: 18px 14px; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 12px; text-align: center; margin-bottom: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.6);">
+            <div style="font-size: 30px; margin-bottom: 6px;">🔒</div>
+            <div style="font-size: 13.5px; color: #38bdf8; font-weight: 700; margin-bottom: 4px;">
+                Sheet Protected
+            </div>
+            <div id="sheetUnlockPromptText" style="font-size: 12px; color: #cbd5e1; margin-bottom: 12px;">
+                Enter Studio PIN to unlock Editing &amp; Deletion:
+            </div>
+            <div style="display: flex; gap: 8px; justify-content: center; align-items: center; margin-bottom: 10px;">
+                <input type="password" id="sheetUnlockPinInput" placeholder="PIN" maxlength="6" inputmode="numeric" style="width: 130px; text-align: center; font-size: 20px; letter-spacing: 4px; font-weight: bold; background: #080c14; border: 1px solid #38bdf8; border-radius: 6px; color: #ffffff; padding: 7px 10px;" onkeydown="if(event.key==='Enter')submitSheetUnlockWithPin();">
+                <button type="button" onclick="submitSheetUnlockWithPin()" style="background: #0284c7; color: white; border: none; border-radius: 6px; padding: 9px 16px; font-weight: bold; font-size: 13px; cursor: pointer; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);">
+                    Unlock
+                </button>
+            </div>
+            <div style="font-size: 11.5px; margin-top: 6px;">
+                <a href="javascript:void(0)" onclick="closeAdminAuthModal()" style="color: #94a3b8; text-decoration: underline;">Cancel</a>
+            </div>
+        </div>
+
         <!-- 1. DELETE STUDIO PIN CONFIRMATION VIEW -->
         <div id="studioDeletePinView" style="display: none; padding: 18px 14px; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(239, 68, 68, 0.5); border-radius: 12px; text-align: center; margin-bottom: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.6);">
             <div style="font-size: 30px; margin-bottom: 6px;">🗑️</div>
@@ -1914,9 +1969,14 @@
 <!-- BALANCE SHEET MODAL -->
 <div id="dynamicSheetModal">
     <div class="sheet-ui-container">
-        <div class="sheet-header">
-            <span class="close-sheet-btn" onclick="closeDynamicSheet()">&times;</span>
-            <h2>Balance Sheet View</h2>
+                <div class="sheet-header" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 20px;">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <h2 style="margin: 0;">Balance Sheet View</h2>
+                <button type="button" id="balanceSheetLockBtn" onclick="toggleSheetEditLock('Balance Sheet')" class="sheet-lock-toggle-btn locked" title="Click to Unlock for Editing &amp; Deletion">
+                    <i class="fa-solid fa-lock"></i> <span class="lock-btn-text">Locked</span>
+                </button>
+            </div>
+            <span class="close-sheet-btn" onclick="closeDynamicSheet()" style="position: static; font-size: 26px;">&times;</span>
         </div>
         
         <div class="table-responsive">
@@ -1971,8 +2031,13 @@
     <div class="studio-card-modal">
         <span class="close-sheet-btn" onclick="closeStudioModal()">&times;</span>
         <div style="padding: 14px 20px; border-bottom: 1px solid #30363d; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-            <div class="banner-title" id="studioTitle" style="padding: 0; font-size: 24px; text-align: left;">
-                Studio Data
+                        <div style="display: flex; align-items: center; gap: 14px;">
+                <div class="banner-title" id="studioTitle" style="padding: 0; font-size: 24px; text-align: left;">
+                    Studio Data
+                </div>
+                <button type="button" id="studioModalLockBtn" onclick="toggleSheetEditLock('Studio Sheet')" class="sheet-lock-toggle-btn locked" title="Click to Unlock for Editing &amp; Deletion">
+                    <i class="fa-solid fa-lock"></i> <span class="lock-btn-text">Locked</span>
+                </button>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
                 <label style="color: #9ca3af; font-size: 13px; font-weight: bold;">Select / Filter Studio:</label>
@@ -3159,11 +3224,30 @@
 
     function enableInlineEditing(container) {
         container.querySelectorAll('.editable-cell').forEach(cell => {
+            cell.contentEditable = isSheetEditUnlocked ? "true" : "false";
+
+            cell.addEventListener('mousedown', (event) => {
+                if (!isSheetEditUnlocked) {
+                    event.preventDefault();
+                    cell.blur();
+                    requireSheetEditPermission(() => {
+                        cell.contentEditable = "true";
+                        cell.focus();
+                    });
+                }
+            });
+
             cell.addEventListener('focus', () => {
-                cell.dataset.original = readInlineCell(cell);
+                if (isSheetEditUnlocked) {
+                    cell.dataset.original = readInlineCell(cell);
+                }
             });
 
             cell.addEventListener('keydown', event => {
+                if (!isSheetEditUnlocked) {
+                    event.preventDefault();
+                    return;
+                }
                 if (event.key === 'Enter') {
                     event.preventDefault();
                     cell.blur();
@@ -3174,16 +3258,32 @@
                 }
             });
 
-            cell.addEventListener('blur', () => saveInlineCell(cell));
+            cell.addEventListener('blur', () => {
+                if (isSheetEditUnlocked) {
+                    saveInlineCell(cell);
+                }
+            });
         });
 
         container.querySelectorAll('.inline-edit-select').forEach(select => {
+            select.addEventListener('mousedown', (event) => {
+                if (!isSheetEditUnlocked) {
+                    event.preventDefault();
+                    select.blur();
+                    requireSheetEditPermission(() => {
+                        select.focus();
+                    });
+                }
+            });
+
             select.addEventListener('focus', () => {
                 select.dataset.original = select.value;
             });
             select.addEventListener('change', () => {
-                syncInlineSelectColor(select);
-                saveInlineCell(select);
+                if (isSheetEditUnlocked) {
+                    syncInlineSelectColor(select);
+                    saveInlineCell(select);
+                }
             });
         });
     }
@@ -3209,9 +3309,15 @@
     function deleteEntry(docId, sheetName) {
         if (!docId) return;
 
+        requireSheetEditPermission(() => {
+            proceedWithEntryDeletion(docId, sheetName);
+        });
+    }
+
+    function proceedWithEntryDeletion(docId, sheetName) {
         showAppConfirm(
-            "ଆପଣ ନିଶ୍ଚିତ ଏହି Entry କୁ Delete କରିବାକୁ ଚାହାଁନ୍ତି କି? (ଏହା ସହିତ ଯୋଡ଼ି ହୋଇଥିବା Balance Sheet / Studio Entry ମଧ୍ୟ ଆପେ ଆପେ Delete ହୋଇଯିବ)",
-            "ଡିଲିଟ୍ କନଫର୍ମ",
+            "Are you sure you want to delete this entry? Linked balance records will also be deleted.",
+            "Confirm Delete",
             function() {
                 const targetEntry = Array.isArray(cachedEntries) ? cachedEntries.find(e => String(e.id) === String(docId)) : null;
                 const linkedList = targetEntry ? findLinkedEntries(targetEntry) : [];
@@ -3226,11 +3332,11 @@
                     const deletePromises = idsToDelete.map(id => db.collection("entries").doc(id).delete());
                     Promise.all(deletePromises)
                         .then(() => {
-                            showAppMessage("Entry ଏବଂ ତାହା ସହିତ ଲିଙ୍କ୍ ଥିବା ସମସ୍ତ ଡାଟା ସଫଳତାର ସହ Delete ହୋଇଗଲା!", "success", "ସଫଳତା");
+                            showAppMessage("Entry and linked records deleted successfully!", "success", "Deleted");
                         })
                         .catch(err => {
                             console.error("Delete error:", err);
-                            showAppMessage("Delete କରିବାରେ ତ୍ରୁଟି: " + (err.message || 'Error'), "error", "ତ୍ରୁଟି");
+                            showAppMessage("Delete error: " + (err.message || 'Error'), "error", "Error");
                         });
                 } else {
                     idsToDelete.forEach(id => {
@@ -3240,13 +3346,79 @@
                     saveLocalEntries();
                     loadStudios();
                     refreshOpenModals();
-                    showAppMessage("Entry ଏବଂ ତାହା ସହିତ ଲିଙ୍କ୍ ଥିବା ସମସ୍ତ ଡାଟା Delete ହୋଇଗଲା!", "success", "ସଫଳତା");
+                    showAppMessage("Entry deleted successfully!", "success", "Deleted");
                 }
             },
             null,
             "Delete",
             "Cancel"
         );
+    }
+
+    function enableInlineEditing(container) {
+        container.querySelectorAll('.editable-cell').forEach(cell => {
+            cell.contentEditable = isSheetEditUnlocked ? "true" : "false";
+
+            cell.addEventListener('mousedown', (event) => {
+                if (!isSheetEditUnlocked) {
+                    event.preventDefault();
+                    cell.blur();
+                    requireSheetEditPermission(() => {
+                        cell.contentEditable = "true";
+                        cell.focus();
+                    });
+                }
+            });
+
+            cell.addEventListener('focus', () => {
+                if (isSheetEditUnlocked) {
+                    cell.dataset.original = readInlineCell(cell);
+                }
+            });
+
+            cell.addEventListener('keydown', event => {
+                if (!isSheetEditUnlocked) {
+                    event.preventDefault();
+                    return;
+                }
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    cell.blur();
+                } else if (event.key === 'Escape') {
+                    event.preventDefault();
+                    cell.textContent = cell.dataset.original || '';
+                    cell.blur();
+                }
+            });
+
+            cell.addEventListener('blur', () => {
+                if (isSheetEditUnlocked) {
+                    saveInlineCell(cell);
+                }
+            });
+        });
+
+        container.querySelectorAll('.inline-edit-select').forEach(select => {
+            select.addEventListener('mousedown', (event) => {
+                if (!isSheetEditUnlocked) {
+                    event.preventDefault();
+                    select.blur();
+                    requireSheetEditPermission(() => {
+                        select.focus();
+                    });
+                }
+            });
+
+            select.addEventListener('focus', () => {
+                select.dataset.original = select.value;
+            });
+            select.addEventListener('change', () => {
+                if (isSheetEditUnlocked) {
+                    syncInlineSelectColor(select);
+                    saveInlineCell(select);
+                }
+            });
+        });
     }
 
     function renderBalanceInline(data) {
@@ -3789,12 +3961,14 @@
     }
 
     // ==========================================
-    // STUDIO SECURITY, PIN & CLOUD STORAGE
+    // STUDIO SECURITY, PIN & SHEET LOCK LOGIC
     // ==========================================
     let cloudStudioPin = '';
     let cloudStudioPinHash = '';
     let studioPinUnsubscribe = null;
     let studioPendingDeletion = '';
+    let isSheetEditUnlocked = false;
+    let pendingSheetActionCallback = null;
 
     function hashStudioPin(pin) {
         if (!pin) return '';
@@ -3847,13 +4021,12 @@
             syncStudioPinFromCloud();
         }
 
-        // Firestore real-time listener for studio data starts immediately
         if (!entriesUnsubscribe) {
             startFirestoreListener();
         }
     }
 
-    // DIRECT OPEN: Balance Sheet, Monthly Saving, App Data, and Studio folders open without any PIN
+    // DIRECT OPEN: View sheets freely without PIN
     function requestPassword(typeName) {
         openRequestedSheet(typeName);
     }
@@ -3862,7 +4035,113 @@
         openRequestedSheet(studioName);
     }
 
-    // STUDIO DELETION: Prompt PIN only when clicking Delete (trash icon)
+    // ------------------------------------------
+    // SHEET LOCK / UNLOCK TOGGLE BUTTON & UI
+    // ------------------------------------------
+    function updateSheetLockButtonsUI() {
+        const btns = [
+            document.getElementById('balanceSheetLockBtn'),
+            document.getElementById('studioModalLockBtn')
+        ];
+        btns.forEach(btn => {
+            if (!btn) return;
+            if (isSheetEditUnlocked) {
+                btn.className = 'sheet-lock-toggle-btn unlocked';
+                btn.innerHTML = '<i class="fa-solid fa-lock-open"></i> <span class="lock-btn-text">Unlocked</span>';
+                btn.title = 'Edit Mode Active. Click to Lock.';
+            } else {
+                btn.className = 'sheet-lock-toggle-btn locked';
+                btn.innerHTML = '<i class="fa-solid fa-lock"></i> <span class="lock-btn-text">Locked</span>';
+                btn.title = 'Read Only. Click to Unlock for Editing & Deletion.';
+            }
+        });
+
+        // Toggle editable styling on cells
+        document.querySelectorAll('.editable-cell').forEach(cell => {
+            cell.contentEditable = isSheetEditUnlocked ? "true" : "false";
+            cell.title = isSheetEditUnlocked ? "Click to edit" : "Locked (Click to Unlock with PIN)";
+        });
+    }
+
+    function toggleSheetEditLock(sheetName) {
+        if (isSheetEditUnlocked) {
+            isSheetEditUnlocked = false;
+            updateSheetLockButtonsUI();
+            showInlineSaveNotice('Sheet locked (Read Only).');
+        } else {
+            requireSheetEditPermission(() => {
+                showInlineSaveNotice('Edit Mode Active.');
+            });
+        }
+    }
+    window.toggleSheetEditLock = toggleSheetEditLock;
+
+    function requireSheetEditPermission(onUnlockedCallback) {
+        if (isSheetEditUnlocked) {
+            if (typeof onUnlockedCallback === 'function') onUnlockedCallback();
+            return;
+        }
+        pendingSheetActionCallback = onUnlockedCallback || null;
+        openSheetUnlockPinModal();
+    }
+
+    function openSheetUnlockPinModal() {
+        const badge = document.getElementById('adminAuthTargetBadge');
+        if (badge) badge.innerHTML = '<i class="fa-solid fa-lock"></i> Sheet Protection';
+
+        const unlockView = document.getElementById('sheetUnlockPinView');
+        const delView = document.getElementById('studioDeletePinView');
+        const chgView = document.getElementById('desktopChangePinView');
+
+        if (unlockView) unlockView.style.display = 'block';
+        if (delView) delView.style.display = 'none';
+        if (chgView) chgView.style.display = 'none';
+
+        const msg = document.getElementById('adminAuthMsg');
+        if (msg) msg.innerHTML = '';
+
+        const pinInput = document.getElementById('sheetUnlockPinInput');
+        if (pinInput) pinInput.value = '';
+
+        const modal = document.getElementById('adminAuthModal');
+        if (modal) modal.style.display = 'flex';
+
+        setTimeout(() => {
+            if (pinInput) pinInput.focus();
+        }, 150);
+    }
+
+    function submitSheetUnlockWithPin() {
+        const input = document.getElementById('sheetUnlockPinInput');
+        const pinVal = input ? input.value.trim() : '';
+        const msg = document.getElementById('adminAuthMsg');
+
+        if (!pinVal) {
+            if (msg) msg.innerHTML = '<span style="color: #ef4444;">Please enter your Studio PIN!</span>';
+            return;
+        }
+
+        if (!verifyPin(pinVal)) {
+            if (msg) msg.innerHTML = '<span style="color: #ef4444;">❌ Incorrect PIN!</span>';
+            return;
+        }
+
+        isSheetEditUnlocked = true;
+        closeAdminAuthModal();
+        updateSheetLockButtonsUI();
+        showInlineSaveNotice('🔓 Unlocked! Edit Mode Active.');
+
+        if (typeof pendingSheetActionCallback === 'function') {
+            const cb = pendingSheetActionCallback;
+            pendingSheetActionCallback = null;
+            cb();
+        }
+    }
+    window.submitSheetUnlockWithPin = submitSheetUnlockWithPin;
+
+    // ------------------------------------------
+    // DELETE STUDIO PIN MODAL & ACTION
+    // ------------------------------------------
     function promptDeleteStudio(studioName, event) {
         if (event) event.stopPropagation();
         const sName = String(studioName || '').trim();
@@ -3880,8 +4159,11 @@
         const pText = document.getElementById('deleteStudioPromptText');
         if (pText) pText.textContent = `Enter Studio PIN to permanently delete "${sName}":`;
 
+        const unlockView = document.getElementById('sheetUnlockPinView');
         const delView = document.getElementById('studioDeletePinView');
         const chgView = document.getElementById('desktopChangePinView');
+
+        if (unlockView) unlockView.style.display = 'none';
         if (delView) delView.style.display = 'block';
         if (chgView) chgView.style.display = 'none';
 
@@ -3925,7 +4207,6 @@
     function executeDeleteStudio(sName) {
         if (!sName) return;
 
-        // 1. Remove from dynamicStudios and record in deletedStudios
         dynamicStudios = dynamicStudios.filter(s => s.toLowerCase() !== sName.toLowerCase());
         if (!deletedStudios.some(d => d.toLowerCase() === sName.toLowerCase())) {
             deletedStudios.push(sName);
@@ -3935,7 +4216,6 @@
         } catch(e) {}
         saveStudios();
 
-        // 2. Also remove all entries associated with this studio
         const studioEntries = (cachedEntries || []).filter(e => {
             const s = String(e.studio || e.sourceStudio || '').trim().toLowerCase();
             return s === sName.toLowerCase() || (e.name && e.name.toLowerCase().includes('(' + sName.toLowerCase() + ')'));
@@ -3967,25 +4247,26 @@
         }
     }
 
-    // ==========================================
+    // ------------------------------------------
     // CHANGE PIN (OLD PIN -> NEW PIN)
-    // ==========================================
+    // ------------------------------------------
     function openChangePinModal() {
         const badge = document.getElementById('adminAuthTargetBadge');
         if (badge) badge.innerHTML = '<i class="fa-solid fa-key"></i> Security Settings';
 
+        const unlockView = document.getElementById('sheetUnlockPinView');
         const delView = document.getElementById('studioDeletePinView');
         const chgView = document.getElementById('desktopChangePinView');
         const step1 = document.getElementById('changePinStep1');
         const step2 = document.getElementById('changePinStep2');
 
+        if (unlockView) unlockView.style.display = 'none';
         if (delView) delView.style.display = 'none';
         if (chgView) chgView.style.display = 'block';
 
         const msg = document.getElementById('adminAuthMsg');
         if (msg) msg.innerHTML = '';
 
-        // If no pin is currently set in Firebase, go directly to Step 2
         if (!cloudStudioPin && !cloudStudioPinHash) {
             if (step1) step1.style.display = 'none';
             if (step2) step2.style.display = 'block';
@@ -4064,8 +4345,6 @@
         cloudStudioPin = p1;
         cloudStudioPinHash = pinHash;
 
-        // Save in Firebase in phoenix_security > studio_auth and admin_pin
-        // Visible and editable in Firebase Console website!
         if (typeof firebase !== 'undefined' && firebase.firestore) {
             try {
                 const dataToSave = {
@@ -4092,6 +4371,7 @@
         const modal = document.getElementById('adminAuthModal');
         if (modal) modal.style.display = 'none';
         studioPendingDeletion = '';
+        pendingSheetActionCallback = null;
     }
     window.closeAdminAuthModal = closeAdminAuthModal;
     window.closePasswordModal = closeAdminAuthModal;
@@ -4601,11 +4881,13 @@
 
     function openRequestedSheet(typeName) {
         if (!typeName || typeName === 'Admin Panel') {
-            return; // Main interface stays directly visible!
+            return;
         }
+        isSheetEditUnlocked = false;
         if (typeName === 'Balance Sheet') {
             loadDynamicBalanceSheet();
             document.getElementById('dynamicSheetModal').style.display = 'flex';
+            updateSheetLockButtonsUI();
         } else if (typeName === 'Monthly Saving') {
             renderMonthlySaving();
             document.getElementById('monthlySavingModal').style.display = 'flex';
@@ -4618,22 +4900,40 @@
             document.getElementById('modalStudioFilter').value = firstStudio;
             fetchStudioSheetData(firstStudio);
             document.getElementById('studioModal').style.display = 'flex';
+            updateSheetLockButtonsUI();
         } else {
             if (dynamicStudios.includes(typeName)) {
                 document.getElementById('studioTitle').innerText = typeName;
                 document.getElementById('modalStudioFilter').value = typeName;
                 fetchStudioSheetData(typeName);
                 document.getElementById('studioModal').style.display = 'flex';
+                updateSheetLockButtonsUI();
             }
         }
     }
 
     function closeDynamicSheet() {
         document.getElementById('dynamicSheetModal').style.display = 'none';
+        isSheetEditUnlocked = false;
+        updateSheetLockButtonsUI();
     }
 
     function closeStudioModal() {
         document.getElementById('studioModal').style.display = 'none';
+        isSheetEditUnlocked = false;
+        updateSheetLockButtonsUI();
+    }
+
+    function closeMonthlySavingModal() {
+        document.getElementById('monthlySavingModal').style.display = 'none';
+        isSheetEditUnlocked = false;
+        updateSheetLockButtonsUI();
+    }
+
+    function closeAppDataModal() {
+        document.getElementById('appDataModal').style.display = 'none';
+        isSheetEditUnlocked = false;
+        updateSheetLockButtonsUI();
     }
 
     function closeAppDataModal() {
