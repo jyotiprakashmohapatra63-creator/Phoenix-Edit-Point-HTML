@@ -3842,82 +3842,59 @@
             syncStudioPinFromCloud();
         }
 
-        // Restore cached desktop admin session within 24 hours
+        // AUTO-LOGOUT: Every time desktop software starts, it is strictly locked!
+        currentAdminUser = null;
+        updateAdminAuthUI(null);
         try {
-            const savedEmail = sessionStorage.getItem('phoenix_admin_verified_email');
-            if (savedEmail && isAuthorizedAdminEmail(savedEmail)) {
-                currentAdminUser = {
-                    email: savedEmail,
-                    displayName: 'Jyotiprakash Mohapatra',
-                    uid: 'session-admin-' + savedEmail
-                };
-                updateAdminAuthUI(currentAdminUser);
-            } else {
-                currentAdminUser = null;
-                updateAdminAuthUI(null);
-            }
+            sessionStorage.removeItem('phoenix_admin_verified_email');
         } catch(e) {}
 
         if (typeof firebase !== 'undefined' && firebase.auth) {
             try {
                 if (window.location.protocol !== 'file:') {
-                    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+                    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
                         .catch(e => console.warn("Firebase Auth persistence:", e));
                 }
+                
+                // Do not auto-restore previous sessions in desktop app
                 firebase.auth().onAuthStateChanged(async function(user) {
-                    if (user && user.email) {
-                        const userEmail = user.email.toLowerCase().trim();
-                        if (!isAuthorizedAdminEmail(userEmail)) {
-                            console.warn("Unauthorized session detected:", userEmail);
-                            await firebase.auth().signOut();
-                            currentAdminUser = null;
-                            updateAdminAuthUI(null);
-                            return;
+                    if (isDesktopEnvironment()) {
+                        if (!currentAdminUser && user) {
+                            await firebase.auth().signOut().catch(()=>{});
                         }
-                        currentAdminUser = user;
-                        updateAdminAuthUI(user);
-                        startFirestoreListener();
                     } else {
-                        const savedEmail = sessionStorage.getItem('phoenix_admin_verified_email');
-                        if (savedEmail && isAuthorizedAdminEmail(savedEmail)) {
-                            currentAdminUser = {
-                                email: savedEmail,
-                                displayName: 'Jyotiprakash Mohapatra',
-                                uid: 'cached-admin-' + savedEmail
-                            };
-                            updateAdminAuthUI(currentAdminUser);
-                        } else {
-                            currentAdminUser = null;
-                            updateAdminAuthUI(null);
-                        }
-                        if (!entriesUnsubscribe) {
+                        // Web environment
+                        if (user && user.email) {
+                            const userEmail = user.email.toLowerCase().trim();
+                            if (!isAuthorizedAdminEmail(userEmail)) {
+                                await firebase.auth().signOut();
+                                currentAdminUser = null;
+                                updateAdminAuthUI(null);
+                                return;
+                            }
+                            currentAdminUser = user;
+                            updateAdminAuthUI(user);
                             startFirestoreListener();
                         }
                     }
                 });
-                firebase.auth().getRedirectResult().then(async (cred) => {
-                    if (cred && cred.user) {
-                        const userEmail = (cred.user.email || '').toLowerCase().trim();
-                        if (!isAuthorizedAdminEmail(userEmail)) {
-                            await firebase.auth().signOut();
-                            currentAdminUser = null;
-                            updateAdminAuthUI(null);
-                            showAppMessage(`⛔ Access Denied! ${userEmail} ଅନୁମତିପ୍ରାପ୍ତ Admin ନୁହେଁ।`, "error", "Unauthorized Account");
-                            return;
-                        }
-                        currentAdminUser = cred.user;
-                        updateAdminAuthUI(cred.user);
-                        showAppMessage(`ସ୍ୱାଗତ! ${cred.user.displayName || cred.user.email} ସଫଳତାର ସହ Login ହୋଇଗଲା।`, "success", "Welcome Admin");
-                        if (pendingTargetType) {
-                            const target = pendingTargetType;
-                            pendingTargetType = '';
-                            openRequestedSheet(target);
-                        }
-                    }
-                }).catch(e => console.warn("Google redirect result error:", e));
             } catch(e) {
                 console.error("Firebase Auth init error:", e);
             }
+        }
+
+        // Firestore real-time listener starts immediately for data
+        if (!entriesUnsubscribe) {
+            startFirestoreListener();
+        }
+
+        // Desktop launch: Auto-prompt PIN unlock (or Google activation if new device)
+        if (isDesktopEnvironment()) {
+            setTimeout(() => {
+                if (!currentAdminUser) {
+                    openAdminAuthModal('');
+                }
+            }, 600);
         }
     }
 
@@ -3972,8 +3949,7 @@
                 "Admin Logout",
                 function() {
                     try {
-                        localStorage.removeItem('phoenix_admin_verified_email');
-                        localStorage.removeItem('phoenix_admin_verified_time');
+                        sessionStorage.removeItem('phoenix_admin_verified_email');
                     } catch(e) {}
                     if (typeof firebase !== 'undefined' && firebase.auth) {
                         firebase.auth().signOut().catch(e => console.warn("signOut:", e));
@@ -3992,7 +3968,7 @@
                 "Cancel"
             );
         } else {
-            openAdminAuthModal('Admin Panel');
+            openAdminAuthModal('');
         }
     }
 
@@ -4056,10 +4032,10 @@
     }
 
     function openAdminAuthModal(typeName) {
-        pendingTargetType = typeName || '';
+        pendingTargetType = (typeName && typeName !== 'Admin Panel') ? typeName : '';
         const badge = document.getElementById('adminAuthTargetBadge');
         if (badge) {
-            badge.textContent = pendingTargetType ? `Unlock Access: ${pendingTargetType}` : 'Admin Authentication';
+            badge.textContent = pendingTargetType ? `Unlock Access: ${pendingTargetType}` : 'Studio PIN & Security';
         }
         const msg = document.getElementById('adminAuthMsg');
         if (msg) msg.innerHTML = '';
@@ -4152,20 +4128,12 @@
     function syncStudioPinFromCloud() {
         try {
             if (typeof firebase !== 'undefined' && firebase.firestore) {
-                // PIN data remains in Firestore; no PIN hash is copied to this device.
                 if (!studioPinUnsubscribe) {
                     studioPinUnsubscribe = firebase.firestore().collection('phoenix_security').doc('studio_auth')
                         .onSnapshot((doc) => {
                             if (!doc.exists) return;
                             const data = doc.data();
                             cloudStudioPinHash = String(data.pin_hash || '');
-                            // Check if unlock signal was triggered in the last 10 minutes
-                            if (data.unlocked_at && (Date.now() - data.unlocked_at < 10 * 60 * 1000)) {
-                                if (data.owner_email && isAuthorizedAdminEmail(data.owner_email)) {
-                                    console.log("Real-time cloud unlock signal received for:", data.owner_email);
-                                    unlockAdminFromDesktopBridge(data.owner_email);
-                                }
-                            }
                         }, (err) => console.warn("Firestore pin sync error:", err));
                 }
             }
@@ -4222,10 +4190,12 @@
             refreshOpenModals();
             closeAdminAuthModal();
             showAppMessage("🔓 PIN ଯାଞ୍ଚ ସଫଳ! ସଫ୍ଟୱେର୍ Unlock ହୋଇଗଲା।", "success", "Welcome");
-            if (pendingTargetType) {
+            if (pendingTargetType && pendingTargetType !== 'Admin Panel') {
                 const target = pendingTargetType;
                 pendingTargetType = '';
                 openRequestedSheet(target);
+            } else {
+                pendingTargetType = '';
             }
         } else {
             alert("❌ ଭୁଲ୍ PIN! ଦୟାକରି ସଠିକ୍ PIN ଦିଅନ୍ତୁ।");
@@ -4248,10 +4218,10 @@
                         <i class="fa-brands fa-chrome fa-spin" style="margin-right: 6px;"></i> Google Chrome ରେ Browser ଖୋଲିଲା...
                     </div>
                     <div style="color: #cbd5e1; font-size: 11.5px; line-height: 1.5; margin-bottom: 8px;">
-                        Chrome ରେ <b>jyotiprakashmohapatra63@gmail.com</b> ସହ Login କରି ନିଜର PIN ବନାନ୍ତୁ।
+                        Chrome ୱିଣ୍ଡୋରେ ଆପଣଙ୍କ Gmail (jyotiprakashmohapatra63@gmail.com) ସହ Sign-in କରି PIN ସେଟ୍ କରନ୍ତୁ।
                     </div>
-                    <div style="color: #4ade80; font-size: 11.5px; font-weight: 600;">
-                        <i class="fa-solid fa-spinner fa-spin"></i> Chrome ରେ Login ହେବା ମାତ୍ରେ ଏଠାରେ ସଫ୍ଟୱେର୍ ଆପେ Unlock ହୋଇଯିବ!
+                    <div style="font-size: 11px; color: #94a3b8;">
+                        ପ୍ରମାଣିକରଣ ସରିବା ମାତ୍ରେ ଏହି Software ସ୍ୱୟଂଚାଳିତ ଭାବେ Activate ଏବଂ Unlock ହୋଇଯିବ।
                     </div>
                 </div>
             `;
@@ -4285,11 +4255,13 @@
         startFirestoreListener();
         refreshOpenModals();
         closeAdminAuthModal();
-        showAppMessage("ðŸŽ‰ Google Verification à¬¸à¬«à¬³! Device Activate à¬à¬¬à¬‚ Unlock à¬¹à­‹à¬‡à¬—à¬²à¬¾à¥¤", "success", "Admin Verified");
-        if (pendingTargetType) {
+        showAppMessage("🎉 Google Verification ସଫଳ! Device Activate ଏବଂ Unlock ହୋଇଗଲା।", "success", "Admin Verified");
+        if (pendingTargetType && pendingTargetType !== 'Admin Panel') {
             const target = pendingTargetType;
             pendingTargetType = '';
             openRequestedSheet(target);
+        } else {
+            pendingTargetType = '';
         }
     }
     window.unlockAdminFromDesktopBridge = unlockAdminFromDesktopBridge;
@@ -4798,6 +4770,9 @@
     }
 
     function openRequestedSheet(typeName) {
+        if (!typeName || typeName === 'Admin Panel') {
+            return; // Main interface stays directly visible!
+        }
         if (typeName === 'Balance Sheet') {
             loadDynamicBalanceSheet();
             document.getElementById('dynamicSheetModal').style.display = 'flex';
@@ -4814,11 +4789,12 @@
             fetchStudioSheetData(firstStudio);
             document.getElementById('studioModal').style.display = 'flex';
         } else {
-            // Any custom studio name
-            document.getElementById('studioTitle').innerText = typeName;
-            document.getElementById('modalStudioFilter').value = typeName;
-            fetchStudioSheetData(typeName);
-            document.getElementById('studioModal').style.display = 'flex';
+            if (dynamicStudios.includes(typeName)) {
+                document.getElementById('studioTitle').innerText = typeName;
+                document.getElementById('modalStudioFilter').value = typeName;
+                fetchStudioSheetData(typeName);
+                document.getElementById('studioModal').style.display = 'flex';
+            }
         }
     }
 
