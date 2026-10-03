@@ -2338,7 +2338,7 @@
                 <span style="font-size: 11px; color: #10b981; font-weight: normal;">(You can change anytime)</span>
             </label>
             <div style="display: flex; gap: 8px;">
-                <input type="text" id="shareStudioPasswordInput" placeholder="Enter password (e.g. 1234)" style="flex: 1; background: #080c14; border: 1px solid #f59e0b; border-radius: 6px; color: #fbbf24; font-size: 14px; font-weight: bold; padding: 8px 12px; outline: none; letter-spacing: 1px;">
+                <input type="text" id="shareStudioPasswordInput" placeholder="Enter password (e.g. 1234)" oninput="updateShareStudioLinkInputFromPassword()" style="flex: 1; background: #080c14; border: 1px solid #f59e0b; border-radius: 6px; color: #fbbf24; font-size: 14px; font-weight: bold; padding: 8px 12px; outline: none; letter-spacing: 1px;">
                 <button type="button" onclick="saveCurrentStudioPasswordFromModal()" style="background: linear-gradient(135deg, #d97706 0%, #b45309 100%); border: 1px solid #f59e0b; color: white; border-radius: 6px; padding: 8px 14px; font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 5px;">
                     <i class="fa-solid fa-floppy-disk"></i> Save Password
                 </button>
@@ -3810,15 +3810,12 @@
         enableInlineEditing(tbody);
     }
 
-    function renderStudioInline(rows) {
-        const tbody = document.getElementById('studioTableData');
-        tbody.innerHTML = '';
-        const list = rows || cachedEntries || [];
-        const currentStudio = document.getElementById('studioTitle').innerText.trim();
+    function getStudioFilteredRows(studioName, entriesList) {
+        const list = entriesList || cachedEntries || [];
+        const currentStudio = String(studioName || '').trim();
+        if (!currentStudio) return [];
 
-        // Old versions saved some studio receipts only as Balance Sheet entries.
-        // Convert those sourceStudio records for display without changing Firebase data.
-        const studioRows = list.map(row => {
+        return list.map(row => {
             const isBalance = row.type === 'balance' || row.targetSheet === 'Balance Sheet';
             const sourceStudio = String(row.sourceStudio || '').trim();
             if (!isBalance || !sourceStudio || sourceStudio.toLowerCase() !== currentStudio.toLowerCase()) return row;
@@ -3840,7 +3837,6 @@
                 deliveryStatus: row.deliveryStatus || 'Received'
             };
         }).filter(row => {
-            // Do not show unrelated Balance Sheet rows.
             const rowStudio = String(row.studio || row.sourceStudio || '').trim();
             if ((row.type === 'balance' || row.targetSheet === 'Balance Sheet') &&
                 rowStudio.toLowerCase() !== currentStudio.toLowerCase()) return false;
@@ -3854,6 +3850,14 @@
             }
             return rowStudio.toLowerCase() === currentStudio.toLowerCase();
         });
+    }
+    window.getStudioFilteredRows = getStudioFilteredRows;
+
+    function renderStudioInline(rows) {
+        const tbody = document.getElementById('studioTableData');
+        tbody.innerHTML = '';
+        const currentStudio = document.getElementById('studioTitle').innerText.trim();
+        const studioRows = getStudioFilteredRows(currentStudio, rows || cachedEntries);
 
         if (studioRows.length === 0) {
             tbody.innerHTML = '<tr><td colspan="8" class="loading-text" style="padding: 25px; color: #9ca3af;">' +
@@ -6578,10 +6582,61 @@
         const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
         window.open(waUrl, '_blank');
     }
+
     // ==========================================
     // CLIENT UNIQUE LINK & PASSWORD MANAGEMENT
     // ==========================================
-    function getStudioClientLink(studioName) {
+    function hashStudioPassword(pwd) {
+        let hash = 5381;
+        const str = String(pwd || "");
+        for (let i = 0; i < str.length; i++) {
+            hash = ((hash << 5) + hash) + str.charCodeAt(i);
+            hash = hash & hash;
+        }
+        return Math.abs(hash).toString(36);
+    }
+    window.hashStudioPassword = hashStudioPassword;
+
+    function packStudioPayload(payload, password) {
+        try {
+            const jsonStr = unescape(encodeURIComponent(JSON.stringify(payload)));
+            const pwd = String(password || "1234");
+            const out = [];
+            for (let i = 0; i < jsonStr.length; i++) {
+                out.push((jsonStr.charCodeAt(i) ^ pwd.charCodeAt(i % pwd.length)).toString(16).padStart(2, '0'));
+            }
+            const hex = out.join('');
+            const obj = { h: hashStudioPassword(pwd), d: hex };
+            return btoa(JSON.stringify(obj));
+        } catch (e) {
+            console.warn("pack error:", e);
+            return "";
+        }
+    }
+    window.packStudioPayload = packStudioPayload;
+
+    function unpackStudioPayload(token, password) {
+        try {
+            if (!token) return null;
+            const obj = JSON.parse(atob(token));
+            const pwd = String(password || "").trim();
+            if (obj.h !== hashStudioPassword(pwd)) {
+                return null; // Wrong password!
+            }
+            const hex = obj.d;
+            let jsonStr = "";
+            for (let i = 0; i < hex.length; i += 2) {
+                const code = parseInt(hex.substr(i, 2), 16) ^ pwd.charCodeAt((i / 2) % pwd.length);
+                jsonStr += String.fromCharCode(code);
+            }
+            return JSON.parse(decodeURIComponent(escape(jsonStr)));
+        } catch (e) {
+            return null;
+        }
+    }
+    window.unpackStudioPayload = unpackStudioPayload;
+
+    function getStudioClientLink(studioName, customPassword) {
         let base = window.LIVE_APP_URL;
         if (!base) {
             if (window.location && window.location.href && window.location.href.startsWith("http")) {
@@ -6591,9 +6646,44 @@
             }
         }
         base = base.split("?")[0].split("#")[0];
-        return `${base}?studio=${encodeURIComponent(studioName || "Studio")}&mode=client`;
+        let link = `${base}?studio=${encodeURIComponent(studioName || "Studio")}&mode=client`;
+
+        const pwd = customPassword !== undefined ? customPassword : getStudioClientPassword(studioName);
+        if (pwd && typeof getStudioFilteredRows === "function") {
+            const studioRows = getStudioFilteredRows(studioName, cachedEntries);
+            const payload = {
+                s: studioName,
+                t: Date.now(),
+                r: studioRows.map(r => [
+                    r.date || '',
+                    r.workName || r.name || '',
+                    r.workStatus || r.status || '',
+                    parseFloat(r.amount) || 0,
+                    parseFloat(r.receivedAmount) || 0,
+                    r.deliveryStatus || '',
+                    r.id || ''
+                ])
+            };
+            const token = packStudioPayload(payload, pwd);
+            if (token) {
+                link += `#token=${encodeURIComponent(token)}`;
+            }
+        }
+        return link;
     }
     window.getStudioClientLink = getStudioClientLink;
+
+    function updateShareStudioLinkInputFromPassword() {
+        const nameEl = document.getElementById("shareModalStudioName");
+        const curStudio = (nameEl ? nameEl.innerText.trim() : "") || (typeof currentOpenStudio !== 'undefined' ? currentOpenStudio : "Studio");
+        const passInput = document.getElementById("shareStudioPasswordInput");
+        const newPass = passInput ? passInput.value.trim() : "1234";
+        const linkInput = document.getElementById("shareStudioLinkInput");
+        if (linkInput) {
+            linkInput.value = getStudioClientLink(curStudio, newPass);
+        }
+    }
+    window.updateShareStudioLinkInputFromPassword = updateShareStudioLinkInputFromPassword;
 
     function getStudioClientPassword(studioName) {
         if (!studioName) return "1234";
@@ -6628,8 +6718,21 @@
             const updateObj = {};
             updateObj[cleanKey] = cleanPass;
             updateObj["updated_at"] = firebase.firestore.FieldValue.serverTimestamp();
-            return firebase.firestore().collection("phoenix_security").doc("studio_client_passwords")
-                .set(updateObj, { merge: true });
+
+            // Also publish statement snapshot for cross-browser fallback
+            const studioRows = (typeof getStudioFilteredRows === "function") ? getStudioFilteredRows(studioName, cachedEntries) : [];
+            const pubPromise = firebase.firestore().collection("public_statements").doc(cleanKey).set({
+                studio: studioName,
+                password: cleanPass,
+                passwordHash: hashStudioPassword(cleanPass),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                entries: studioRows
+            }, { merge: true }).catch(e => console.warn("public_statements notice:", e));
+
+            const secPromise = firebase.firestore().collection("phoenix_security").doc("studio_client_passwords")
+                .set(updateObj, { merge: true }).catch(e => console.warn("security pass notice:", e));
+
+            return Promise.all([pubPromise, secPromise]);
         }
         return Promise.resolve();
     }
@@ -6685,14 +6788,15 @@
             const nameEl = document.getElementById("shareModalStudioName");
             if (nameEl) nameEl.innerText = curStudio;
 
-            const linkInput = document.getElementById("shareStudioLinkInput");
-            if (linkInput) {
-                linkInput.value = getStudioClientLink(curStudio);
+            const passInput = document.getElementById("shareStudioPasswordInput");
+            const curPass = getStudioClientPassword(curStudio);
+            if (passInput) {
+                passInput.value = curPass;
             }
 
-            const passInput = document.getElementById("shareStudioPasswordInput");
-            if (passInput) {
-                passInput.value = getStudioClientPassword(curStudio);
+            const linkInput = document.getElementById("shareStudioLinkInput");
+            if (linkInput) {
+                linkInput.value = getStudioClientLink(curStudio, curPass);
             }
 
             const notice = document.getElementById("sharePasswordSaveNotice");
@@ -6739,7 +6843,7 @@
             });
         } else {
             document.execCommand("copy");
-            onCopied();
+            markCopied();
         }
     }
     window.copyShareStudioLink = copyShareStudioLink;
@@ -6756,10 +6860,11 @@
             return;
         }
 
-        if (notice) notice.innerHTML = "<span style=\"color: #38bdf8;\"><i class=\"fa-solid fa-spinner fa-spin\"></i> Saving to Firebase...</span>";
+        if (notice) notice.innerHTML = "<span style=\"color: #38bdf8;\"><i class=\"fa-solid fa-spinner fa-spin\"></i> Saving password &amp; generating link...</span>";
 
         saveStudioClientPassword(curStudio, newPass)
             .then(() => {
+                updateShareStudioLinkInputFromPassword();
                 if (notice) notice.innerHTML = "<span style=\"color: #10b981;\"><i class=\"fa-solid fa-check\"></i> Password saved successfully for " + escapeHtml(curStudio) + "!</span>";
                 if (typeof showAppMessage === "function") {
                     showAppMessage("Password for " + curStudio + " saved!", "success", "Password Updated");
@@ -6767,7 +6872,8 @@
             })
             .catch(err => {
                 console.warn(err);
-                if (notice) notice.innerHTML = "<span style=\"color: #10b981;\"><i class=\"fa-solid fa-check\"></i> Password saved locally!</span>";
+                updateShareStudioLinkInputFromPassword();
+                if (notice) notice.innerHTML = "<span style=\"color: #10b981;\"><i class=\"fa-solid fa-check\"></i> Password saved!</span>";
             });
     }
     window.saveCurrentStudioPasswordFromModal = saveCurrentStudioPasswordFromModal;
@@ -6775,10 +6881,10 @@
     function shareStudioLinkViaWhatsApp() {
         const nameEl = document.getElementById("shareModalStudioName");
         const currentStudio = (nameEl ? nameEl.innerText.trim() : "") || (typeof currentOpenStudio !== 'undefined' ? currentOpenStudio : "Studio");
-        const linkInput = document.getElementById("shareStudioLinkInput");
-        const link = linkInput ? linkInput.value : getStudioClientLink(currentStudio);
         const passInput = document.getElementById("shareStudioPasswordInput");
         const pass = passInput ? passInput.value.trim() : getStudioClientPassword(currentStudio);
+        const linkInput = document.getElementById("shareStudioLinkInput");
+        const link = linkInput ? linkInput.value : getStudioClientLink(currentStudio, pass);
 
         const text = `Hello *${currentStudio}*,\n\nPlease find your account statement from *Phoenix Edit Point*:\n\n*Statement Link:* ${link}\n*Access Password:* ${pass}\n\n_You can view your work list, delivery status, remaining balance, and pay directly via UPI._`;
         const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
@@ -6816,22 +6922,82 @@
         }
 
         const studio = window.clientTargetStudio || "Studio";
-        const expected = getStudioClientPassword(studio);
 
         if (btn) {
             btn.disabled = true;
             btn.innerHTML = "<i class=\"fa-solid fa-spinner fa-spin\"></i> Verifying...";
         }
 
-        // Fresh check against Firestore if active
+        // 1. Check for Encrypted Token in URL (#token= or ?token=)
+        let token = "";
+        const hash = window.location.hash || "";
+        const hashMatch = hash.match(/token=([^&]+)/);
+        if (hashMatch) {
+            token = decodeURIComponent(hashMatch[1]);
+        } else {
+            const urlParams = new URLSearchParams(window.location.search);
+            token = urlParams.get("token") || "";
+        }
+
+        if (token) {
+            const unpacked = unpackStudioPayload(token, val);
+            if (unpacked && unpacked.s && unpacked.s.toLowerCase() === studio.toLowerCase()) {
+                // SUCCESS: Unpack studio records directly into cachedEntries
+                if (Array.isArray(unpacked.r)) {
+                    cachedEntries = unpacked.r.map(item => ({
+                        id: item[6] || ('snap_' + Math.random().toString(36).substr(2, 7)),
+                        type: 'studio',
+                        studio: unpacked.s,
+                        date: item[0],
+                        name: item[1],
+                        workName: item[1],
+                        status: item[2],
+                        workStatus: item[2],
+                        amount: item[3],
+                        receivedAmount: item[4],
+                        deliveryStatus: item[5]
+                    }));
+                }
+                try {
+                    localStorage.setItem("phoenix_client_verified_pass_" + studio.toLowerCase(), val);
+                } catch(e) {}
+                unlockClientViewSuccess();
+                return;
+            } else {
+                if (btn) { btn.disabled = false; btn.innerHTML = "<i class=\"fa-solid fa-arrow-right-to-bracket\"></i> Unlock &amp; View Statement"; }
+                if (err) err.innerHTML = "<span style=\"color: #ef4444;\">&#10060; Incorrect Password! Please enter the correct password.</span>";
+                return;
+            }
+        }
+
+        // 2. Fallback: Check Cloud Firestore (public_statements or security)
+        const cleanKey = studio.trim().toLowerCase();
+        const expected = getStudioClientPassword(studio);
+
         if (typeof firebase !== "undefined" && firebase.firestore) {
-            firebase.firestore().collection("phoenix_security").doc("studio_client_passwords").get()
-                .then(doc => {
+            // First check public_statements
+            firebase.firestore().collection("public_statements").doc(cleanKey).get()
+                .then(pubDoc => {
+                    if (pubDoc.exists) {
+                        const data = pubDoc.data() || {};
+                        const cloudPass = String(data.password || "").trim();
+                        if (val === cloudPass || hashStudioPassword(val) === data.passwordHash) {
+                            if (Array.isArray(data.entries) && data.entries.length > 0) {
+                                cachedEntries = data.entries;
+                            }
+                            unlockClientViewSuccess();
+                            return;
+                        }
+                    }
+                    // Try phoenix_security doc
+                    return firebase.firestore().collection("phoenix_security").doc("studio_client_passwords").get();
+                })
+                .then(secDoc => {
+                    if (!secDoc) return;
                     let livePass = expected;
-                    if (doc.exists) {
-                        const data = doc.data() || {};
-                        const cleanKey = studio.trim().toLowerCase();
-                        if (data[cleanKey]) livePass = String(data[cleanKey]).trim();
+                    if (secDoc.exists) {
+                        const sData = secDoc.data() || {};
+                        if (sData[cleanKey]) livePass = String(sData[cleanKey]).trim();
                     }
                     if (val === livePass) {
                         unlockClientViewSuccess();
