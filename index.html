@@ -1851,35 +1851,24 @@
             </div>
         </div>
 
-        <!-- DIRECT GOOGLE SIGN-IN BUTTON -->
-        <div style="margin-bottom: 10px;">
-            <button type="button" id="btnAdminGoogleLogin" onclick="submitGoogleLogin()" style="width: 100%; padding: 11px 14px; background: #ffffff; color: #1f2937; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35); transition: all 0.2s;" onmouseover="this.style.background='#f8fafc'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='#ffffff'; this.style.transform='none';">
-                <svg width="18" height="18" viewBox="0 0 24 24" style="flex-shrink: 0;">
-                    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
-                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.27 21.43 7.35 24 12 24z"/>
-                    <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 10.03 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
-                    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.35 0 3.27 2.57 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
-                </svg>
-                <span>Direct Google Login (ଗୁଗୁଲ୍ ଲଗଇନ୍)</span>
-            </button>
-        </div>
-        <div style="text-align: center; margin-bottom: 12px;">
-            <a href="javascript:void(0)" onclick="openDesktopBrowserLogin()" style="color: #38bdf8; font-size: 11.5px; text-decoration: underline; font-weight: 600;">
-                <i class="fa-brands fa-chrome"></i> Open in Google Chrome Browser (କ୍ରୋମ୍‌ରେ ଖୋଲନ୍ତୁ)
-            </a>
-        </div>
-
-        <div style="margin-top: 10px; padding: 12px 10px; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 10px; text-align: center;">
-            <div style="font-size: 11.5px; color: #38bdf8; font-weight: 700; margin-bottom: 4px;">
-                <i class="fa-brands fa-google"></i> Google Login Passcode
+        <!-- OWNER STUDIO PIN UNLOCK BOX -->
+        <div style="padding: 18px 14px; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 12px; text-align: center; margin-bottom: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.6);">
+            <div style="font-size: 13px; color: #38bdf8; font-weight: 700; margin-bottom: 4px;">
+                <i class="fa-solid fa-key"></i> Enter Studio PIN (ଆପଣଙ୍କ PIN ଦିଅନ୍ତୁ)
             </div>
-            <div style="font-size: 11px; color: #94a3b8; margin-bottom: 8px;">
-                Chrome ରେ Login ପରେ ଦେଖାଯାଉଥିବା 6-digit Code ଏଠାରେ ଦିଅନ୍ତୁ:
+            <div style="font-size: 11px; color: #94a3b8; margin-bottom: 12px;">
+                Gmail ରେ ସେଟ୍ କରିଥିବା ଆପଣଙ୍କ 4-6 Digit Secret PIN ଦିଅନ୍ତୁ:
             </div>
             <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
-                <input type="text" id="desktopModalPasscodeInput" placeholder="6-digit Code" maxlength="6" style="width: 130px; text-align: center; font-size: 16px; letter-spacing: 2px; font-weight: bold; background: #080c14; border: 1px solid #38bdf8; border-radius: 6px; color: #ffffff; padding: 6px 8px;">
-                <button type="button" onclick="submitDesktopModalPasscode()" style="background: #0284c7; color: white; border: none; border-radius: 6px; padding: 7px 14px; font-weight: bold; font-size: 12px; cursor: pointer;">Unlock</button>
+                <input type="password" id="desktopStudioPinInput" placeholder="PIN" maxlength="6" style="width: 140px; text-align: center; font-size: 20px; letter-spacing: 4px; font-weight: bold; background: #080c14; border: 1px solid #38bdf8; border-radius: 6px; color: #ffffff; padding: 7px 10px;" onkeydown="if(event.key==='Enter')submitStudioPinUnlock();">
+                <button type="button" onclick="submitStudioPinUnlock()" style="background: #0284c7; color: white; border: none; border-radius: 6px; padding: 9px 18px; font-weight: bold; font-size: 13px; cursor: pointer; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);">Unlock</button>
             </div>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 12px;">
+            <a href="javascript:void(0)" onclick="openDesktopBrowserLogin()" style="color: #38bdf8; font-size: 12px; text-decoration: underline; font-weight: 600;">
+                <i class="fa-brands fa-google"></i> Login with Google to Set / Change PIN (Gmail ରେ PIN ବନାନ୍ତୁ)
+            </a>
         </div>
 
         <div id="adminAuthMsg" style="margin-top: 14px; font-size: 12px; line-height: 1.4; min-height: 18px; text-align: center;"></div>
@@ -3754,6 +3743,10 @@
             checkAndHandleDesktopAuthBridge();
         }
 
+        if (typeof syncStudioPinFromCloud === 'function') {
+            syncStudioPinFromCloud();
+        }
+
         // Restore cached desktop admin session within 24 hours
         try {
             const savedEmail = localStorage.getItem('phoenix_admin_verified_email');
@@ -4027,38 +4020,69 @@
         );
     }
 
-    function computeAdminPasscodeForDate(dateStr) {
-        let hash = 5381;
-        const str = "PHOENIX_SECURE_AUTH_" + dateStr + "_JYOTIPRAKASH_MOHAPATRA_63";
+    function hashStudioPin(pin) {
+        if (!pin) return '';
+        const clean = pin.toString().trim();
+        const salt = "PHOENIX_SECURE_SALT_JYOTIPRAKASH_63_";
+        let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+        const str = salt + clean;
         for (let i = 0; i < str.length; i++) {
-            hash = (((hash << 5) - hash) + str.charCodeAt(i)) | 0;
+            const ch = str.charCodeAt(i);
+            h1 = Math.imul(h1 ^ ch, 2654435761);
+            h2 = Math.imul(h2 ^ ch, 1597334677);
         }
-        const absCode = Math.abs(hash % 900000) + 100000;
-        return absCode.toString();
+        h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+        h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+        return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(16);
     }
 
-    function verifyAdminPasscode(inputCode) {
-        if (!inputCode) return false;
-        const clean = inputCode.toString().trim();
-        const today = new Date().toISOString().slice(0, 10);
-        const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-        return (clean === computeAdminPasscodeForDate(today) || clean === computeAdminPasscodeForDate(yesterday));
+    function syncStudioPinFromCloud() {
+        try {
+            if (typeof firebase !== 'undefined' && firebase.firestore) {
+                firebase.firestore().collection('phoenix_security').doc('studio_auth').get()
+                    .then((doc) => {
+                        if (doc.exists && doc.data() && doc.data().pin_hash) {
+                            localStorage.setItem('phoenix_owner_pin_hash', doc.data().pin_hash);
+                        }
+                    }).catch(() => {});
+            }
+        } catch(e) {}
     }
 
-    function submitDesktopModalPasscode() {
-        const input = document.getElementById('desktopModalPasscodeInput');
+    function submitStudioPinUnlock() {
+        const input = document.getElementById('desktopStudioPinInput');
         const val = input ? input.value.trim() : '';
+        const msg = document.getElementById('adminAuthMsg');
+
         if (!val) {
-            alert("ଦୟାକରି 6-digit Code ଦିଅନ୍ତୁ!");
+            alert("ଦୟାକରି ଆପଣଙ୍କ ୬-ଅଙ୍କ PIN ଦିଅନ୍ତୁ!");
             return;
         }
-        if (verifyAdminPasscode(val)) {
+
+        const savedHash = localStorage.getItem('phoenix_owner_pin_hash');
+        if (!savedHash) {
+            alert("କୌଣସି PIN ସେଟ୍ ହୋଇନାହିଁ! ଦୟାକରି ତଳେ ଥିବା 'Login with Google to Set / Change PIN' କ୍ଲିକ୍ କରି ପ୍ରଥମେ ନିଜର PIN ବନାନ୍ତୁ।");
+            if (msg) {
+                msg.innerHTML = `
+                    <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px; padding: 10px; margin-top: 6px; text-align: center;">
+                        <div style="color: #ef4444; font-weight: 700; font-size: 12px;">⚠️ କୌଣସି PIN ସେଟ୍ ହୋଇନାହିଁ!</div>
+                        <div style="color: #cbd5e1; font-size: 11px; margin-top: 4px;">ତଳେ ଥିବା <b>'Login with Google'</b> ଲିଙ୍କ୍ କ୍ଲିକ୍ କରି ପ୍ରଥମେ PIN ବନାନ୍ତୁ।</div>
+                    </div>
+                `;
+            }
+            return;
+        }
+
+        if (hashStudioPin(val) === savedHash) {
             unlockAdminFromDesktopBridge('jyotiprakashmohapatra63@gmail.com');
         } else {
-            alert("ଭୁଲ୍ Passcode! Chrome Browser ରେ Login କରି ସଠିକ୍ Code ଦେଖନ୍ତୁ।");
+            alert("❌ ଭୁଲ୍ PIN! ଦୟାକରି ସଠିକ୍ PIN ଦିଅନ୍ତୁ କିମ୍ବା Gmail Login କରି PIN ବଦଳାନ୍ତୁ।");
+            if (msg) {
+                msg.innerHTML = '<span style="color: #ef4444;"><i class="fa-solid fa-circle-xmark"></i> ଭୁଲ୍ PIN! ଦୟାକରି ସଠିକ୍ PIN ଦିଅନ୍ତୁ।</span>';
+            }
         }
     }
-    window.submitDesktopModalPasscode = submitDesktopModalPasscode;
+    window.submitStudioPinUnlock = submitStudioPinUnlock;
 
     function openDesktopBrowserLogin() {
         const liveAuthUrl = 'https://jyotiprakashmohapatra63-creator.github.io/Phoenix-Edit-Point-HTML/?auth_target=desktop&port=54321&v=' + Date.now();
@@ -4069,39 +4093,19 @@
             msg.innerHTML = `
                 <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(56, 189, 248, 0.45); border-radius: 10px; padding: 14px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.6);">
                     <div style="color: #38bdf8; font-weight: 700; font-size: 13.5px; margin-bottom: 6px;">
-                        <i class="fa-brands fa-chrome fa-spin" style="margin-right: 6px;"></i> Google Chrome ରେ Login Page ଖୋଲିଲା...
+                        <i class="fa-brands fa-chrome fa-spin" style="margin-right: 6px;"></i> Google Chrome ରେ Browser ଖୋଲିଲା...
                     </div>
-                    <div style="color: #cbd5e1; font-size: 11.5px; line-height: 1.5; margin-bottom: 12px;">
-                        ଆପଣଙ୍କ Chrome Browser ରେ <b>jyotiprakashmohapatra63@gmail.com</b> ଚୟନ କରନ୍ତୁ।
-                        Login ହେବା ମାତ୍ରେ ଏହି App ଆପେ ଆପେ Unlock ହୋଇଯିବ।
+                    <div style="color: #cbd5e1; font-size: 11.5px; line-height: 1.5; margin-bottom: 8px;">
+                        Chrome ରେ <b>jyotiprakashmohapatra63@gmail.com</b> ସହ Login କରି ନିଜର ୬-ଅଙ୍କ PIN ବନାନ୍ତୁ।
                     </div>
-                    <div style="background: rgba(2, 132, 199, 0.15); border: 1px dashed rgba(56, 189, 248, 0.4); border-radius: 8px; padding: 10px; margin-top: 8px;">
-                        <div style="color: #94a3b8; font-size: 11px; margin-bottom: 6px;">କିମ୍ବା Browser ରେ ଦେଖାଯାଉଥିବା 6-digit Unlock Passcode ଏଠାରେ ଦିଅନ୍ତୁ:</div>
-                        <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
-                            <input type="text" id="bridgeManualPasscode" placeholder="Passcode" maxlength="6" style="width: 120px; text-align: center; font-size: 16px; letter-spacing: 2px; font-weight: bold; background: #080c14; border: 1px solid #38bdf8; border-radius: 6px; color: #ffffff; padding: 6px 8px;">
-                            <button type="button" onclick="submitBridgeManualPasscode()" style="background: #0284c7; color: white; border: none; border-radius: 6px; padding: 7px 14px; font-weight: bold; font-size: 12px; cursor: pointer;">Unlock</button>
-                        </div>
+                    <div style="color: #94a3b8; font-size: 11px;">
+                        PIN ସେଭ୍ ହେବା ପରେ ଏଠାରେ ସେହି PIN ଦେଇ Unlock କରନ୍ତୁ।
                     </div>
                 </div>
             `;
         }
     }
     window.openDesktopBrowserLogin = openDesktopBrowserLogin;
-
-    function submitBridgeManualPasscode() {
-        const input = document.getElementById('bridgeManualPasscode');
-        const val = input ? input.value.trim() : '';
-        if (!val) {
-            alert("ଦୟାକରି 6-digit Passcode ଦିଅନ୍ତୁ!");
-            return;
-        }
-        if (verifyAdminPasscode(val)) {
-            unlockAdminFromDesktopBridge('jyotiprakashmohapatra63@gmail.com');
-        } else {
-            alert("ଭୁଲ୍ Passcode! ଦୟାକରି Chrome Browser ରେ ଦେଖାଯାଉଥିବା ସଠିକ୍ Code ଦିଅନ୍ତୁ।");
-        }
-    }
-    window.submitBridgeManualPasscode = submitBridgeManualPasscode;
 
     async function unlockAdminFromDesktopBridge(email, idToken, accessToken) {
         if (!isAuthorizedAdminEmail(email)) return;
@@ -4299,38 +4303,122 @@
             return;
         }
 
-        const passcode = computeAdminPasscodeForDate(new Date().toISOString().slice(0, 10));
-
-        // 1. UPDATE UI FIRST IMMEDIATELY
+        // Show PIN Setup form ONLY after successful Gmail verification
         if (container) {
             container.innerHTML = `
-                <div style="background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.35);border-radius:12px;padding:22px;text-align:center;">
-                    <div style="font-size:40px;margin-bottom:8px;">✅</div>
-                    <h3 style="color:#4ade80;margin:0 0 6px 0;font-size:18px;">Google Login ସଫଳ ହେଲା!</h3>
-                    <p style="color:#cbd5e1;font-size:13px;margin:0 0 14px 0;">Google Account: <b>${userEmail}</b></p>
-                    
-                    <div style="background:#020617;border:1px dashed #38bdf8;border-radius:8px;padding:14px;margin-bottom:14px;">
-                        <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">ଆପଣଙ୍କ Desktop Software Unlock Passcode:</div>
-                        <div style="font-size:32px;font-weight:800;color:#38bdf8;letter-spacing:4px;margin:8px 0;" id="displayPasscodeBox">${passcode}</div>
-                        <div style="font-size:11.5px;color:#cbd5e1;">ଏହି ୬-ଅଙ୍କ Code କୁ Desktop Software ରେ ଦିଅନ୍ତୁ</div>
+                <div style="background: rgba(15, 23, 42, 0.98); border: 1px solid rgba(56, 189, 248, 0.45); border-radius: 14px; padding: 22px; text-align: center; box-shadow: 0 4px 30px rgba(0,0,0,0.8);">
+                    <div style="font-size: 38px; margin-bottom: 6px;">✅</div>
+                    <div style="color: #4ade80; font-weight: 700; font-size: 16px; margin-bottom: 4px;">
+                        Gmail Login Verified!
+                    </div>
+                    <div style="color: #cbd5e1; font-size: 12.5px; margin-bottom: 16px;">
+                        Account: <b>${userEmail}</b>
                     </div>
                     
-                    <p style="color:#94a3b8;font-size:12px;margin:0 0 14px 0;">ଏବେ ଆପଣ Desktop Software କୁ ଯାଇ ଏହି Code ଦେଇ Unlock କରନ୍ତୁ।</p>
-                    <button onclick="window.close()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:white;padding:8px 20px;border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;">Window ବନ୍ଦ କରନ୍ତୁ</button>
+                    <div style="background: rgba(2, 132, 199, 0.12); border: 1px dashed rgba(56, 189, 248, 0.45); border-radius: 10px; padding: 18px 14px; margin-bottom: 12px;">
+                        <div style="color: #38bdf8; font-weight: 700; font-size: 14px; margin-bottom: 6px;">
+                            <i class="fa-solid fa-key"></i> ନିଜର ୬-ଅଙ୍କ Studio PIN ବନାନ୍ତୁ (Set PIN)
+                        </div>
+                        <div style="color: #94a3b8; font-size: 11.5px; line-height: 1.4; margin-bottom: 14px;">
+                            ଏହି PIN ଆପଣଙ୍କ Desktop Software ପାଇଁ ସୁରକ୍ଷିତ ରହିବ। ଯେତେବେଳେ ଚାହିଁବେ ଏହି PIN ଦେଇ Desktop App ଖୋଲିପାରିବେ।
+                        </div>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 10px; align-items: center; max-width: 280px; margin: 0 auto;">
+                            <input type="password" id="bridgeNewPinInput" placeholder="୬-ଅଙ୍କ ନୂଆ PIN" maxlength="6" inputmode="numeric" style="width: 100%; text-align: center; font-size: 20px; letter-spacing: 5px; font-weight: bold; background: #080c14; border: 1px solid #38bdf8; border-radius: 8px; color: #ffffff; padding: 9px 12px;" autofocus>
+                            
+                            <input type="password" id="bridgeConfirmPinInput" placeholder="PIN ପୁଣି ଥରେ ଦିଅନ୍ତୁ (Confirm)" maxlength="6" inputmode="numeric" style="width: 100%; text-align: center; font-size: 20px; letter-spacing: 5px; font-weight: bold; background: #080c14; border: 1px solid #38bdf8; border-radius: 8px; color: #ffffff; padding: 9px 12px;" onkeydown="if(event.key==='Enter')saveOwnerStudioPinFromBridge('${desktopPort}', '${userEmail}');">
+                            
+                            <button type="button" id="btnBridgeSavePin" onclick="saveOwnerStudioPinFromBridge('${desktopPort}', '${userEmail}')" style="width: 100%; background: #0284c7; color: white; border: none; border-radius: 8px; padding: 11px 18px; font-weight: bold; font-size: 14px; cursor: pointer; box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4); margin-top: 4px;">
+                                💾 PIN ସେଭ୍ କରନ୍ତୁ (Save PIN)
+                            </button>
+                        </div>
+                        <div id="bridgePinSaveStatus" style="margin-top: 10px; font-size: 12px; min-height: 18px;"></div>
+                    </div>
                 </div>
             `;
         }
         if (status) status.innerHTML = '';
-
-        // 2. Background fire-and-forget loopback fetch
-        try {
-            const idToken = (credential && credential.idToken) ? credential.idToken : '';
-            const accessToken = (credential && credential.accessToken) ? credential.accessToken : '';
-            setTimeout(() => {
-                fetch(`http://127.0.0.1:${desktopPort}/auth-callback?email=${encodeURIComponent(userEmail)}&id_token=${encodeURIComponent(idToken)}&access_token=${encodeURIComponent(accessToken)}&code=${passcode}`, { mode: 'no-cors' }).catch(() => {});
-            }, 100);
-        } catch(e) {}
     }
+
+    function saveOwnerStudioPinFromBridge(desktopPort, userEmail) {
+        if (!isAuthorizedAdminEmail(userEmail)) {
+            alert("⛔ Access Denied! Only authorized email can set PIN.");
+            return;
+        }
+
+        const pin1El = document.getElementById('bridgeNewPinInput');
+        const pin2El = document.getElementById('bridgeConfirmPinInput');
+        const status = document.getElementById('bridgePinSaveStatus');
+        const btn = document.getElementById('btnBridgeSavePin');
+
+        const pin1 = pin1El ? pin1El.value.trim() : '';
+        const pin2 = pin2El ? pin2El.value.trim() : '';
+
+        if (!pin1 || pin1.length < 4 || pin1.length > 6 || !/^\d+$/.test(pin1)) {
+            if (status) status.innerHTML = '<span style="color:#ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> ଦୟାକରି ୪ ରୁ ୬ ଅଙ୍କର କେବଳ ସଂଖ୍ୟା (Numeric PIN) ଦିଅନ୍ତୁ!</span>';
+            return;
+        }
+        if (pin1 !== pin2) {
+            if (status) status.innerHTML = '<span style="color:#ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> ଉଭୟ PIN ସମାନ ହେଉନାହିଁ! ଦୟାକରି ଯାଞ୍ଚ କରି ପୁଣି ଦିଅନ୍ତୁ।</span>';
+            return;
+        }
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ସେଭ୍ ହେଉଛି...';
+        }
+
+        const pinHash = hashStudioPin(pin1);
+
+        // 1. Save in localStorage
+        try {
+            localStorage.setItem('phoenix_owner_pin_hash', pinHash);
+            localStorage.setItem('phoenix_admin_verified_email', userEmail);
+            localStorage.setItem('phoenix_admin_verified_time', Date.now().toString());
+        } catch(e) {}
+
+        // 2. Save in Firestore Cloud
+        if (typeof firebase !== 'undefined' && firebase.firestore) {
+            try {
+                firebase.firestore().collection('phoenix_security').doc('studio_auth').set({
+                    owner_email: userEmail,
+                    pin_hash: pinHash,
+                    updated_at: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true }).catch(err => console.warn("Firestore save error:", err));
+            } catch(e) {}
+        }
+
+        // 3. Ping Desktop App via loopback
+        try {
+            fetch(`http://127.0.0.1:${desktopPort}/auth-callback?email=${encodeURIComponent(userEmail)}&pin_hash=${encodeURIComponent(pinHash)}`, { mode: 'no-cors' }).catch(() => {});
+        } catch(e) {}
+
+        // 4. Show Success Screen
+        const container = document.getElementById('bridgeActionContainer');
+        if (container) {
+            container.innerHTML = `
+                <div style="background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.4); border-radius: 12px; padding: 24px; text-align: center;">
+                    <div style="font-size: 44px; margin-bottom: 8px;">🎉</div>
+                    <h3 style="color: #4ade80; margin: 0 0 8px 0; font-size: 18px;">PIN ସଫଳତାର ସହ ସେଟ୍ ହୋଇଗଲା!</h3>
+                    <p style="color: #cbd5e1; font-size: 13px; line-height: 1.5; margin: 0 0 16px 0;">
+                        ଆପଣଙ୍କ Studio PIN ସୁରକ୍ଷିତ ଭାବରେ ସେଭ୍ ହୋଇଛି।
+                    </p>
+                    <div style="background: #020617; border: 1px dashed #38bdf8; border-radius: 8px; padding: 14px; margin-bottom: 16px;">
+                        <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase;">ଆପଣଙ୍କ ସେଟ୍ ହୋଇଥିବା PIN:</div>
+                        <div style="font-size: 28px; font-weight: 800; color: #38bdf8; letter-spacing: 5px; margin: 6px 0;">${pin1}</div>
+                        <div style="font-size: 11.5px; color: #cbd5e1;">ଏହି PIN କୁ କେବଳ ଆପଣ ହିଁ ମନେ ରଖନ୍ତୁ।</div>
+                    </div>
+                    <p style="color: #94a3b8; font-size: 12px; margin: 0 0 14px 0;">
+                        ଏବେ ଆପଣ Desktop App କୁ ଯାଇ ଏହି PIN ଦେଇ ସିଧାସଳଖ Unlock କରିପାରିବେ।
+                    </p>
+                    <button onclick="window.close()" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 9px 24px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer;">
+                        Window ବନ୍ଦ କରନ୍ତୁ
+                    </button>
+                </div>
+            `;
+        }
+    }
+    window.saveOwnerStudioPinFromBridge = saveOwnerStudioPinFromBridge;
 
     function executeBridgeGoogleLogin(desktopPort, forceRedirect) {
         const status = document.getElementById('bridgeStatusMessage');
