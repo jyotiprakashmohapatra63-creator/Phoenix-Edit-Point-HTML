@@ -4134,8 +4134,7 @@
             .catch(err => {
                 console.error("Google signin failed:", err);
                 if (err.code === 'auth/popup-blocked') {
-                    if (msg) msg.innerHTML = '<span style="color: #fbbf24;">Popup block ହୋଇଛି, Redirect କରାଯାଉଛି...</span>';
-                    firebase.auth().signInWithRedirect(provider);
+                    if (msg) msg.innerHTML = '<span style="color: #fbbf24;"><i class="fa-solid fa-triangle-exclamation"></i> Popup block ହୋଇଛି। ଦୟାକରି ତଳେ ଥିବା Email & Password ଦ୍ୱାରା Login କରନ୍ତୁ କିମ୍ବା Chrome Browser ରେ ଖୋଲନ୍ତୁ।</span>';
                     return;
                 }
                 const friendly = getAuthFriendlyMessage(err);

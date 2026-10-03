@@ -2,7 +2,7 @@
 // Phoenix Edit Point - Firebase Configuration
 // ========================================================
 window.FIREBASE_CONFIG = {
-    apiKey: "AIzaSyDEZAmG_e1CF-ycSJzgUtIAPKRum90L0aQ",
+    apiKey: "AIzaSyDEZAmG_e1CF-yCSJzgUtIAPKruM90LOaQ",
     authDomain: "phoenix-edit-point-billing.firebaseapp.com",
     projectId: "phoenix-edit-point-billing",
     storageBucket: "phoenix-edit-point-billing.firebasestorage.app",
