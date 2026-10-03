@@ -3723,18 +3723,21 @@
     // Tamper-proof security: Verified cryptographic tokens of authorized Owner IDs
     // Changing external config files cannot grant unauthorized access
     const PHOENIX_SECURE_ADMIN_TOKENS = [
-        "anlvdGlwcmFrYXNob2hhcGF0cmE2M0BnbWFpbC5jb20=", // jyotiprakashmohapatra63@gmail.com
+        "anlvdGlwcmFrYXNobW9oYXBhdHJhNjNAZ21haWwuY29t", // jyotiprakashmohapatra63@gmail.com
         "YWRtaW5AcGhvZW5peGVkaXRwb2ludC5jb20="          // admin@phoenixeditpoint.com
     ];
 
     function isAuthorizedAdminEmail(email) {
         if (!email) return false;
         const normalized = email.toLowerCase().trim();
+        if (normalized === 'jyotiprakashmohapatra63@gmail.com' || normalized === 'admin@phoenixeditpoint.com') {
+            return true;
+        }
         try {
             const token = btoa(normalized);
             return PHOENIX_SECURE_ADMIN_TOKENS.includes(token);
         } catch(e) {
-            return normalized === 'jyotiprakashmohapatra63@gmail.com' || normalized === 'admin@phoenixeditpoint.com';
+            return false;
         }
     }
 
