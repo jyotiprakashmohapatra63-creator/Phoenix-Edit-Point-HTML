@@ -1851,48 +1851,38 @@
             </div>
         </div>
 
-        <!-- CUSTOM PIN SECTION (PRIMARY UNLOCK) -->
-        <div id="customPinBox" style="margin-bottom: 14px; padding: 16px 14px; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 12px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.4);">
-            <div id="pinBoxTitle" style="font-size: 13.5px; color: #38bdf8; font-weight: 700; margin-bottom: 4px;">
-                <i class="fa-solid fa-key"></i> ଆପଣଙ୍କ Admin PIN
-            </div>
-            <div id="pinBoxSubtitle" style="font-size: 11.5px; color: #94a3b8; margin-bottom: 12px; line-height: 1.4;">
-                ଆପଣଙ୍କ ସିକ୍ରେଟ୍ PIN ଦେଇ Unlock କରନ୍ତୁ:
-            </div>
-            <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
-                <div style="position: relative; display: inline-block;">
-                    <input type="password" id="desktopModalPasscodeInput" onkeydown="if(event.key==='Enter') submitCustomAdminPin()" placeholder="PIN" maxlength="8" style="width: 140px; text-align: center; font-size: 18px; letter-spacing: 3px; font-weight: bold; background: #080c14; border: 1px solid #38bdf8; border-radius: 6px; color: #ffffff; padding: 7px 34px 7px 10px; outline: none;">
-                    <i id="togglePinVisibilityIcon" class="fa-solid fa-eye" onclick="togglePinVisibility()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; font-size: 13px;" title="PIN ଦେଖନ୍ତୁ / ଲୁଚାନ୍ତୁ"></i>
-                </div>
-                <button type="button" id="btnPinAction" onclick="submitCustomAdminPin()" style="background: #0284c7; color: white; border: none; border-radius: 6px; padding: 8px 18px; font-weight: bold; font-size: 13px; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);">Unlock</button>
-            </div>
-            <div id="pinActionLinks" style="margin-top: 10px; display: flex; justify-content: center; gap: 14px; font-size: 11.5px;">
-                <a href="javascript:void(0)" onclick="handleChangePinClick()" style="color: #38bdf8; text-decoration: underline;">
-                    <i class="fa-solid fa-pen-to-square"></i> Change PIN (ନୂଆ PIN ସେଟ୍ / ବଦଳାନ୍ତୁ)
-                </a>
-            </div>
-        </div>
-
-        <div style="display: flex; align-items: center; margin: 10px 0; color: #64748b; font-size: 10.5px;">
-            <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></div>
-            <span style="padding: 0 10px; text-transform: uppercase;">କିମ୍ବା (OR GOOGLE)</span>
-            <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></div>
-        </div>
-
         <!-- DIRECT GOOGLE SIGN-IN BUTTON -->
-        <div>
-            <button type="button" id="btnAdminGoogleLogin" onclick="submitGoogleLogin()" style="width: 100%; padding: 10px 14px; background: #ffffff; color: #1f2937; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35); transition: all 0.2s;">
+        <div style="margin-bottom: 10px;">
+            <button type="button" id="btnAdminGoogleLogin" onclick="submitGoogleLogin()" style="width: 100%; padding: 11px 14px; background: #ffffff; color: #1f2937; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35); transition: all 0.2s;" onmouseover="this.style.background='#f8fafc'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='#ffffff'; this.style.transform='none';">
                 <svg width="18" height="18" viewBox="0 0 24 24" style="flex-shrink: 0;">
                     <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
                     <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.27 21.43 7.35 24 12 24z"/>
                     <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 10.03 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
                     <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.35 0 3.27 2.57 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
                 </svg>
-                <span>Google Sign-In (Chrome Browser)</span>
+                <span>Direct Google Login (ଗୁଗୁଲ୍ ଲଗଇନ୍)</span>
             </button>
         </div>
+        <div style="text-align: center; margin-bottom: 12px;">
+            <a href="javascript:void(0)" onclick="openDesktopBrowserLogin()" style="color: #38bdf8; font-size: 11.5px; text-decoration: underline; font-weight: 600;">
+                <i class="fa-brands fa-chrome"></i> Open in Google Chrome Browser (କ୍ରୋମ୍‌ରେ ଖୋଲନ୍ତୁ)
+            </a>
+        </div>
 
-        <div id="adminAuthMsg" style="margin-top: 10px; font-size: 12px; line-height: 1.4; min-height: 16px; text-align: center;"></div>
+        <div style="margin-top: 10px; padding: 12px 10px; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 10px; text-align: center;">
+            <div style="font-size: 11.5px; color: #38bdf8; font-weight: 700; margin-bottom: 4px;">
+                <i class="fa-brands fa-google"></i> Google Login Passcode
+            </div>
+            <div style="font-size: 11px; color: #94a3b8; margin-bottom: 8px;">
+                Chrome ରେ Login ପରେ ଦେଖାଯାଉଥିବା 6-digit Code ଏଠାରେ ଦିଅନ୍ତୁ:
+            </div>
+            <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
+                <input type="text" id="desktopModalPasscodeInput" placeholder="6-digit Code" maxlength="6" style="width: 130px; text-align: center; font-size: 16px; letter-spacing: 2px; font-weight: bold; background: #080c14; border: 1px solid #38bdf8; border-radius: 6px; color: #ffffff; padding: 6px 8px;">
+                <button type="button" onclick="submitDesktopModalPasscode()" style="background: #0284c7; color: white; border: none; border-radius: 6px; padding: 7px 14px; font-weight: bold; font-size: 12px; cursor: pointer;">Unlock</button>
+            </div>
+        </div>
+
+        <div id="adminAuthMsg" style="margin-top: 14px; font-size: 12px; line-height: 1.4; min-height: 18px; text-align: center;"></div>
     </div>
 </div>
 
@@ -3966,131 +3956,6 @@
         }
     }
 
-    function getSavedCustomPin() {
-        return (localStorage.getItem('phoenix_custom_admin_pin') || '').trim();
-    }
-
-    function togglePinVisibility() {
-        const input = document.getElementById('desktopModalPasscodeInput');
-        const icon = document.getElementById('togglePinVisibilityIcon');
-        if (!input) return;
-        if (input.type === 'password') {
-            input.type = 'text';
-            if (icon) {
-                icon.className = 'fa-solid fa-eye-slash';
-                icon.style.color = '#38bdf8';
-            }
-        } else {
-            input.type = 'password';
-            if (icon) {
-                icon.className = 'fa-solid fa-eye';
-                icon.style.color = '#64748b';
-            }
-        }
-    }
-    window.togglePinVisibility = togglePinVisibility;
-
-    function refreshPinUI() {
-        const savedPin = getSavedCustomPin();
-        const title = document.getElementById('pinBoxTitle');
-        const subtitle = document.getElementById('pinBoxSubtitle');
-        const input = document.getElementById('desktopModalPasscodeInput');
-        const btn = document.getElementById('btnPinAction');
-        const links = document.getElementById('pinActionLinks');
-
-        if (input) {
-            input.value = '';
-            input.type = 'password';
-            const icon = document.getElementById('togglePinVisibilityIcon');
-            if (icon) {
-                icon.className = 'fa-solid fa-eye';
-                icon.style.color = '#64748b';
-            }
-        }
-
-        if (!savedPin) {
-            // First time setup - prompt to create their own PIN
-            if (title) title.innerHTML = '<i class="fa-solid fa-key" style="color:#4ade80;"></i> ନୂଆ Admin PIN ସେଟ୍ କରନ୍ତୁ';
-            if (subtitle) subtitle.innerHTML = 'ଆପଣଙ୍କ ମନପସନ୍ଦର <b>4 ରୁ 8 Digit PIN</b> ଦିଅନ୍ତୁ, ଏହା ଏଠାରେ ସବୁଦିନ ପାଇଁ Save ହୋଇ ରହିବ:';
-            if (input) input.placeholder = 'New PIN';
-            if (btn) {
-                btn.textContent = 'Save & Unlock';
-                btn.style.background = '#16a34a';
-            }
-            if (links) links.style.display = 'none';
-        } else {
-            // Already configured - prompt to enter the saved PIN
-            if (title) title.innerHTML = '<i class="fa-solid fa-lock" style="color:#38bdf8;"></i> ଆପଣଙ୍କ Admin PIN';
-            if (subtitle) subtitle.innerHTML = 'ଆପଣ ସେଭ୍ କରିଥିବା ସିକ୍ରେଟ୍ PIN ଦେଇ Unlock କରନ୍ତୁ:';
-            if (input) input.placeholder = 'Enter PIN';
-            if (btn) {
-                btn.textContent = 'Unlock';
-                btn.style.background = '#0284c7';
-            }
-            if (links) links.style.display = 'flex';
-        }
-    }
-    window.refreshPinUI = refreshPinUI;
-
-    function submitCustomAdminPin() {
-        const input = document.getElementById('desktopModalPasscodeInput');
-        const enteredPin = (input ? input.value : '').trim();
-        const savedPin = getSavedCustomPin();
-
-        if (!enteredPin) {
-            alert("ଦୟାକରି ଆପଣଙ୍କ PIN ଦିଅନ୍ତୁ!");
-            if (input) input.focus();
-            return;
-        }
-
-        if (!savedPin) {
-            // Setting custom PIN for the very first time
-            if (enteredPin.length < 4 || enteredPin.length > 8) {
-                alert("PIN ଅତି କମରେ 4 ଟି ଏବଂ ସର୍ବାଧିକ 8 ଟି Digit ହେବା ଆବଶ୍ୟକ!");
-                if (input) input.focus();
-                return;
-            }
-            localStorage.setItem('phoenix_custom_admin_pin', enteredPin);
-            showAppMessage("🎉 ଆପଣଙ୍କ Admin PIN ସଫଳତାର ସହ Save ହେଲା! ଏବେ Unlock ହୋଇଗଲା।", "success", "PIN Saved");
-            unlockAdminFromDesktopBridge('jyotiprakashmohapatra63@gmail.com');
-        } else {
-            // Verifying existing PIN (or also accepts bridge code)
-            if (enteredPin === savedPin || verifyAdminPasscode(enteredPin)) {
-                unlockAdminFromDesktopBridge('jyotiprakashmohapatra63@gmail.com');
-            } else {
-                alert("❌ ଭୁଲ୍ PIN! ଦୟାକରି ଆପଣ save କରିଥିବା ସଠିକ୍ PIN ଦିଅନ୍ତୁ।\n(ଯଦି PIN ଭୁଲିଯାଇଛନ୍ତି ତେବେ 'Change PIN' କରନ୍ତୁ କିମ୍ବା ତଳେ ଥିବା Google Sign-In ବ୍ୟବହାର କରନ୍ତୁ)");
-                if (input) {
-                    input.value = '';
-                    input.focus();
-                }
-            }
-        }
-    }
-    window.submitCustomAdminPin = submitCustomAdminPin;
-
-    function handleChangePinClick() {
-        const savedPin = getSavedCustomPin();
-        if (savedPin) {
-            const oldPin = prompt("ପୂର୍ବରୁ ସେଭ୍ ଥିବା ପୁରୁଣା (Current) PIN ଦିଅନ୍ତୁ (କିମ୍ବା ଯଦି ଭୁଲିଯାଇଛନ୍ତି ତେବେ Cancel କରି Google Sign-In କରନ୍ତୁ):");
-            if (oldPin === null) return;
-            if (oldPin.trim() !== savedPin) {
-                alert("❌ ପୁରୁଣା PIN ଭୁଲ୍ ଅଛି! ସୁରକ୍ଷା ପାଇଁ PIN ବଦଳାଯାଇ ପାରିଲା ନାହିଁ।\nଯଦି ଆପଣ PIN ଭୁଲିଯାଇଛନ୍ତି, ଦୟାକରି ତଳେ ଥିବା Google Sign-In କ୍ଲିକ୍ କରି ଆପଣଙ୍କ Gmail ID ସହ Login କରନ୍ତୁ।");
-                return;
-            }
-        }
-        const newPin = prompt("ଆପଣ ରଖିବାକୁ ଚାହୁଁଥିବା ନୂଆ Admin PIN (4 ରୁ 8 Digit) ଦିଅନ୍ତୁ:");
-        if (newPin === null) return;
-        const cleanNew = newPin.trim();
-        if (cleanNew.length < 4 || cleanNew.length > 8) {
-            alert("❌ PIN ଅତି କମରେ 4 ଟି ଏବଂ ସର୍ବାଧିକ 8 ଟି Digit ହେବା ଆବଶ୍ୟକ!");
-            return;
-        }
-        localStorage.setItem('phoenix_custom_admin_pin', cleanNew);
-        alert("✅ ଆପଣଙ୍କ ନୂଆ Admin PIN ସଫଳତାର ସହ Save ହୋଇଗଲା! ଏବେ ଏହି PIN ବ୍ୟବହାର କରି ଆପଣ ସବୁବେଳେ Unlock କରିପାରିବେ।");
-        refreshPinUI();
-    }
-    window.handleChangePinClick = handleChangePinClick;
-
     function openAdminAuthModal(typeName) {
         pendingTargetType = typeName || '';
         const badge = document.getElementById('adminAuthTargetBadge');
@@ -4104,11 +3969,20 @@
         const modal = document.getElementById('adminAuthModal');
         if (modal) modal.style.display = 'flex';
 
-        refreshPinUI();
+        // Notify user if running on file:// protocol where Google Sign-in cannot work
+        if (window.location.protocol === 'file:' && msg) {
+            const liveUrl = (window.LIVE_APP_URL || 'https://jyotiprakashmohapatra63-creator.github.io/Phoenix-Edit-Point-HTML/');
+            msg.innerHTML = `
+                <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 6px; padding: 7px 10px; font-size: 11px; color: #fbbf24; text-align: left; line-height: 1.4;">
+                    <i class="fa-solid fa-circle-info"></i> Direct Google Login କେବଳ <b>Live Web Link (HTTPS)</b> ରେ କାର୍ଯ୍ୟ କରେ। 
+                    <a href="${liveUrl}" target="_blank" style="color: #38bdf8; font-weight: 700; text-decoration: underline; margin-left: 4px;">Live Link ଖୋଲନ୍ତୁ</a>
+                </div>
+            `;
+        }
 
         setTimeout(() => {
-            const pinInput = document.getElementById('desktopModalPasscodeInput');
-            if (pinInput) pinInput.focus();
+            const emailInput = document.getElementById('adminLoginEmail');
+            if (emailInput) emailInput.focus();
         }, 150);
     }
 
@@ -4166,15 +4040,23 @@
     function verifyAdminPasscode(inputCode) {
         if (!inputCode) return false;
         const clean = inputCode.toString().trim();
-        const saved = getSavedCustomPin();
-        if (saved && clean === saved) return true;
         const today = new Date().toISOString().slice(0, 10);
         const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
         return (clean === computeAdminPasscodeForDate(today) || clean === computeAdminPasscodeForDate(yesterday));
     }
 
     function submitDesktopModalPasscode() {
-        submitCustomAdminPin();
+        const input = document.getElementById('desktopModalPasscodeInput');
+        const val = input ? input.value.trim() : '';
+        if (!val) {
+            alert("ଦୟାକରି 6-digit Code ଦିଅନ୍ତୁ!");
+            return;
+        }
+        if (verifyAdminPasscode(val)) {
+            unlockAdminFromDesktopBridge('jyotiprakashmohapatra63@gmail.com');
+        } else {
+            alert("ଭୁଲ୍ Passcode! Chrome Browser ରେ Login କରି ସଠିକ୍ Code ଦେଖନ୍ତୁ।");
+        }
     }
     window.submitDesktopModalPasscode = submitDesktopModalPasscode;
 
