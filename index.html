@@ -6232,18 +6232,40 @@
         showAppMessage("Preparing QR photo...", "info", "Please Wait");
 
         try {
-            // Generate photo blob (either QR code or Slate poster)
+            // Generate the COMPLETE payment slate, not a QR-only image. This
+            // is the same poster the Download Slate button produces.
             let photoBlob = null;
-            const qrCanvas = document.getElementById('qrCanvas');
-            if (qrCanvas) {
-                photoBlob = await new Promise(res => qrCanvas.toBlob(res, 'image/png'));
+            const paymentCard = document.getElementById('paymentCard');
+            if (paymentCard && window.html2canvas) {
+                try {
+                    const qrCanvas = document.getElementById('qrCanvas');
+                    const qrImage = document.getElementById('finalQrImage');
+                    if (qrCanvas && qrImage) {
+                        qrImage.src = qrCanvas.toDataURL('image/png');
+                        qrImage.style.display = 'block';
+                        qrCanvas.style.display = 'none';
+                    }
+                    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+                    const posterCanvas = await window.html2canvas(paymentCard, {
+                        scale: 2,
+                        useCORS: true,
+                        allowTaint: true,
+                        backgroundColor: '#110e0c',
+                        logging: false
+                    });
+                    if (posterCanvas) {
+                        photoBlob = await new Promise(resolve => posterCanvas.toBlob(resolve, 'image/png'));
+                    }
+                } catch (posterError) {
+                    console.warn('Full slate render failed; using canvas poster fallback.', posterError);
+                }
             }
             if (!photoBlob) {
                 photoBlob = await createDirectSlateCanvas();
             }
 
             if (photoBlob) {
-                const photoFile = new File([photoBlob], `Phoenix_Payment_QR_${Date.now()}.png`, { type: 'image/png' });
+                const photoFile = new File([photoBlob], `Phoenix_Payment_Slate_${Date.now()}.png`, { type: 'image/png' });
 
                 // Capacitor's Android WebView does not reliably implement the
                 // browser File Share API. Use the native bridge so WhatsApp
