@@ -4056,7 +4056,8 @@
         if (chgView) chgView.style.display = 'none';
         if (msg) msg.innerHTML = '';
 
-        if (!isDeviceActivated()) {
+        const isGoogleAuthed = typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser && isAuthorizedAdminEmail(firebase.auth().currentUser.email);
+        if (!isDeviceActivated() || !isGoogleAuthed) {
             // Fresh install or reinstalled: Require Google verification
             if (badge) badge.innerHTML = '<i class="fa-solid fa-shield-halved"></i> Device Activation';
             if (actView) actView.style.display = 'block';
@@ -4185,12 +4186,12 @@
     // DESKTOP BROWSER GOOGLE ACTIVATION
     // ------------------------------------------
     function openDesktopBrowserLogin() {
-        const bridgeUrl = 'https://jyotiprakashmohapatra63-creator.github.io/Phoenix-Edit-Point-HTML/?auth_target=desktop&port=54321';
-        try {
-            window.open(bridgeUrl, '_blank');
-        } catch(e) {
-            window.location.href = bridgeUrl;
+        if (typeof runDirectBrowserPopupLogin === 'function') {
+            runDirectBrowserPopupLogin();
+            return;
         }
+        const bridgeUrl = 'https://jyotiprakashmohapatra63-creator.github.io/Phoenix-Edit-Point-HTML/?auth_target=desktop&port=54321';
+        try { window.open(bridgeUrl, '_blank'); } catch(e) { window.location.href = bridgeUrl; }
     }
     window.openDesktopBrowserLogin = openDesktopBrowserLogin;
 
