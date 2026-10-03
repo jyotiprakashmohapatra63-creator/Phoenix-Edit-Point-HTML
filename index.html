@@ -597,6 +597,38 @@
             position: relative;
         }
 
+        /* --- CLIENT STATEMENT READ-ONLY VIEW MODE --- */
+        body.client-readonly-active .main-wrapper {
+            display: none !important;
+        }
+        body.client-readonly-active #adminAuthModal,
+        body.client-readonly-active #dynamicSheetModal,
+        body.client-readonly-active #appDataModal,
+        body.client-readonly-active #monthlySavingModal,
+        body.client-readonly-active #themeSettingsModal {
+            display: none !important;
+        }
+        body.client-readonly-active #studioModal {
+            background: #030712 !important;
+            padding: 10px !important;
+            z-index: 1000 !important;
+        }
+        body.client-readonly-active .studio-card-modal {
+            max-width: 1350px !important;
+            max-height: 98vh !important;
+            height: 96vh !important;
+            border: 1px solid rgba(56, 189, 248, 0.45) !important;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9), 0 0 30px rgba(56, 189, 248, 0.15) !important;
+        }
+        body.client-readonly-active .close-sheet-btn,
+        body.client-readonly-active #studioModalLockBtn,
+        body.client-readonly-active #modalStudioFilterContainer,
+        body.client-readonly-active #btnShareStudioClientLink,
+        body.client-readonly-active .col-action,
+        body.client-readonly-active .col-action-th {
+            display: none !important;
+        }
+
         .banner-title {
             background-color: transparent;
             text-align: center;
@@ -2165,6 +2197,7 @@
                 <button type="button" id="balanceSheetLockBtn" onclick="toggleSheetEditLock('Balance Sheet')" class="sheet-lock-toggle-btn locked" title="Click to Unlock for Editing &amp; Deletion">
                     <i class="fa-solid fa-lock"></i> <span class="lock-btn-text">Locked</span>
                 </button>
+                <span id="clientModeBadge" style="display: none; background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; color: #38bdf8; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;"><i class="fa-solid fa-eye"></i> Verified Client Statement</span>
             </div>
             <span class="close-sheet-btn" onclick="closeDynamicSheet()" style="position: static; font-size: 26px;">&times;</span>
         </div>
@@ -2181,7 +2214,7 @@
                         <th>Balance</th>
                         <th>Payment Mode</th>
                         <th>Notes</th>
-                        <th style="text-align: center; width: 90px; background-color: #e74c3c; color: white;">Action</th>
+                        <th class="col-action-th" style="text-align: center; width: 90px; background-color: #e74c3c; color: white;">Action</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
@@ -2228,8 +2261,9 @@
                 <button type="button" id="studioModalLockBtn" onclick="toggleSheetEditLock('Studio Sheet')" class="sheet-lock-toggle-btn locked" title="Click to Unlock for Editing &amp; Deletion">
                     <i class="fa-solid fa-lock"></i> <span class="lock-btn-text">Locked</span>
                 </button>
+                <span id="clientModeBadge" style="display: none; background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; color: #38bdf8; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;"><i class="fa-solid fa-eye"></i> Verified Client Statement</span>
             </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
+            <div id="modalStudioFilterContainer" style="display: flex; align-items: center; gap: 8px;">
                 <label style="color: #9ca3af; font-size: 13px; font-weight: bold;">Select / Filter Studio:</label>
                 <input type="text" id="modalStudioFilter" list="studioList" placeholder="Type or select studio..." oninput="changeStudioView(this.value)" style="background: #161b22; border: 1px solid #00bcd4; color: white; padding: 6px 12px; border-radius: 4px; font-size: 14px; width: 220px; outline: none;">
             </div>
@@ -2238,9 +2272,10 @@
             <span>Total Projects: <strong id="studioTotalProjects" style="color:#38bdf8;">₹0.00</strong></span>
             <span>Total Received: <strong id="studioTotalReceived" style="color:#c084fc;">₹0.00</strong></span>
             <span>Remaining Due: <strong id="studioTotalDue" style="color:#ff5252;">₹0.00</strong></span>
-            <button type="button" onclick="openStudioPaymentDesk()" style="margin-left: auto; background: linear-gradient(135deg, #c9a050 0%, #a37938 100%); border: 1px solid #f5df97; color: #120f0d; padding: 6px 14px; border-radius: 4px; font-weight: bold; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.4);" onmouseover="this.style.background='#f5df97'" onmouseout="this.style.background='linear-gradient(135deg, #c9a050 0%, #a37938 100%)'">
+            <button type="button" id="btnStudioPaymentDesk" onclick="openStudioPaymentDesk()" style="margin-left: auto; background: linear-gradient(135deg, #c9a050 0%, #a37938 100%); border: 1px solid #f5df97; color: #120f0d; padding: 6px 14px; border-radius: 4px; font-weight: bold; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.4);" onmouseover="this.style.background='#f5df97'" onmouseout="this.style.background='linear-gradient(135deg, #c9a050 0%, #a37938 100%)'">
                 💳 Generate Payment QR
             </button>
+            <button type="button" id="btnShareStudioClientLink" onclick="openShareStudioLinkModal()" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border: 1px solid #38bdf8; color: #ffffff; padding: 6px 14px; border-radius: 4px; font-weight: bold; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.4);" onmouseover="this.style.background='#0ea5e9'" onmouseout="this.style.background='linear-gradient(135deg, #0284c7 0%, #0369a1 100%)'"><i class="fa-solid fa-link"></i> Share Client Link</button>
         </div>
         <div class="studio-table-container">
             <table class="studio-table" id="studioDataTable">
@@ -2253,7 +2288,7 @@
                         <th class="col-received" style="width: 125px;">Received Amount</th>
                         <th class="col-balance" style="width: 100px;">Balance</th>
                         <th class="col-delivery">Delivery Status</th>
-                        <th style="text-align: center; width: 85px; background-color: #e74c3c; color: white;">Action</th>
+                        <th class="col-action-th" style="text-align: center; width: 85px; background-color: #e74c3c; color: white;">Action</th>
                     </tr>
                 </thead>
                 <tbody id="studioTableData">
@@ -2266,6 +2301,86 @@
     </div>
 </div>
 
+<!-- SHARE CLIENT LINK MODAL (ADMIN ONLY) -->
+<div id="shareClientLinkModal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); z-index: 99999; justify-content: center; align-items: center; padding: 16px;">
+    <div style="background: #111827; border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 14px; padding: 24px 26px; width: 100%; max-width: 520px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); position: relative;">
+        <span onclick="closeShareStudioLinkModal()" style="position: absolute; right: 16px; top: 14px; color: #94a3b8; font-size: 24px; cursor: pointer; font-weight: bold; line-height: 1;">&times;</span>
+        
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
+            <div style="background: rgba(2, 132, 199, 0.2); border: 1px solid #38bdf8; border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 16px;">
+                <i class="fa-solid fa-link"></i>
+            </div>
+            <div>
+                <h3 style="color: #ffffff; margin: 0; font-size: 18px; font-weight: bold;">Share Client Statement Link</h3>
+                <span id="shareModalStudioName" style="color: #38bdf8; font-size: 13px; font-weight: bold;">Studio Name</span>
+            </div>
+        </div>
+
+        <p style="color: #94a3b8; font-size: 12.5px; margin: 0 0 16px; line-height: 1.4;">
+            This link gives your client a <b>Strict Read-Only</b> view of their own ledger. They can view orders, track remaining balance, and pay via UPI QR, but <b>CANNOT edit, delete, or see other studios</b>.
+        </p>
+
+        <!-- Unique Link Box -->
+        <label style="color: #e2e8f0; font-size: 12.5px; font-weight: bold; display: block; margin-bottom: 6px;">
+            <i class="fa-solid fa-globe" style="color: #38bdf8;"></i> Client Unique Link:
+        </label>
+        <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+            <input type="text" id="shareStudioLinkInput" readonly style="flex: 1; background: #080c14; border: 1px solid #374151; border-radius: 6px; color: #38bdf8; font-size: 12.5px; padding: 8px 12px; outline: none;" onclick="this.select()">
+            <button type="button" id="btnCopyShareStudioLink" onclick="copyShareStudioLink()" style="background: #0284c7; border: 1px solid #38bdf8; color: white; border-radius: 6px; padding: 8px 14px; font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 6px;">
+                <i class="fa-regular fa-copy"></i> <span id="copyBtnText">Copy Link</span>
+            </button>
+        </div>
+
+        <!-- Studio Password Config -->
+        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 8px; padding: 14px 16px; margin-bottom: 18px;">
+            <label style="color: #e2e8f0; font-size: 13px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span><i class="fa-solid fa-key" style="color: #f59e0b;"></i> Access Password for this Studio:</span>
+                <span style="font-size: 11px; color: #10b981; font-weight: normal;">(You can change anytime)</span>
+            </label>
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="shareStudioPasswordInput" placeholder="Enter password (e.g. 1234)" style="flex: 1; background: #080c14; border: 1px solid #f59e0b; border-radius: 6px; color: #fbbf24; font-size: 14px; font-weight: bold; padding: 8px 12px; outline: none; letter-spacing: 1px;">
+                <button type="button" onclick="saveCurrentStudioPasswordFromModal()" style="background: linear-gradient(135deg, #d97706 0%, #b45309 100%); border: 1px solid #f59e0b; color: white; border-radius: 6px; padding: 8px 14px; font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 5px;">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Password
+                </button>
+            </div>
+            <div id="sharePasswordSaveNotice" style="font-size: 11.5px; margin-top: 6px; min-height: 16px;"></div>
+        </div>
+
+        <!-- WhatsApp Share Button -->
+        <button type="button" onclick="shareStudioLinkViaWhatsApp()" style="width: 100%; background: #16a34a; border: 1px solid #22c55e; color: white; border-radius: 8px; padding: 10px; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.35);">
+            <i class="fa-brands fa-whatsapp" style="font-size: 18px;"></i> Share on WhatsApp (Link + Password)
+        </button>
+    </div>
+</div>
+
+<!-- CLIENT STATEMENT ACCESS / LOCK SCREEN MODAL (READ-ONLY VIEWERS) -->
+<div id="clientAuthModal" style="display: none; position: fixed; inset: 0; background: rgba(3, 7, 18, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 999999; justify-content: center; align-items: center; padding: 16px;">
+    <div style="background: linear-gradient(180deg, #111827 0%, #0b0f19 100%); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 16px; padding: 32px 28px; width: 100%; max-width: 420px; text-align: center; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(14, 165, 233, 0.2);">
+        <img src="PhoenixLOGO-full-v2.png" alt="Phoenix Edit Point" style="max-width: 220px; width: 100%; height: auto; max-height: 70px; object-fit: contain; margin: 0 auto 16px; display: block; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.8));" onerror="if(typeof PHOENIX_FULL_LOGO_DATA!=='undefined')this.src=PHOENIX_FULL_LOGO_DATA;">
+        
+        <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.35); padding: 5px 12px; border-radius: 20px; margin-bottom: 12px;">
+            <i class="fa-solid fa-lock" style="color: #38bdf8; font-size: 13px;"></i>
+            <span id="clientAuthStudioBadge" style="color: #38bdf8; font-size: 13px; font-weight: bold; letter-spacing: 0.5px;">Client Statement</span>
+        </div>
+        
+        <h3 id="clientAuthTitle" style="color: #ffffff; margin: 0 0 6px; font-size: 20px; font-weight: 700;">Studio Statement Access</h3>
+        <p style="color: #94a3b8; font-size: 13px; margin: 0 0 20px; line-height: 1.5;">Please enter the security password provided by Phoenix Edit Point to view your account statement.</p>
+        
+        <div style="position: relative; margin-bottom: 16px;">
+            <input type="password" id="clientAccessPasswordInput" placeholder="Enter Studio Password" style="width: 100%; background: #080c14; border: 1.5px solid #38bdf8; border-radius: 8px; color: #ffffff; padding: 12px 14px; font-size: 15px; text-align: center; letter-spacing: 2px; box-sizing: border-box; outline: none;" onkeydown="if(event.key==='Enter')verifyClientAccess()">
+        </div>
+        
+        <div id="clientAuthErrorMsg" style="min-height: 22px; font-size: 13px; margin-bottom: 14px; font-weight: 600;"></div>
+        
+        <button type="button" id="btnUnlockClientStatement" onclick="verifyClientAccess()" style="width: 100%; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border: 1px solid #38bdf8; border-radius: 8px; padding: 12px; font-size: 15px; font-weight: bold; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4);">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i> Unlock &amp; View Statement
+        </button>
+        
+        <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.08); color: #64748b; font-size: 11.5px;">
+            ðŸ”’ Official Client Portal â€¢ Phoenix Edit Point
+        </div>
+    </div>
+</div>
 <!-- APP DATA SUMMARY MODAL -->
 <div id="appDataModal">
     <div class="studio-card-modal">
@@ -2575,8 +2690,19 @@
     let isFirebaseActive = false;
     let db = null;
     let dynamicStudios = ["WeClick", "Maa Tarini Studio"];
+    let isClientReadOnlyMode = false;
+    let clientTargetStudio = '';
+    let clientStudioPasswords = {};
 
     window.onload = function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const reqStudio = urlParams.get('studio');
+        const reqMode = urlParams.get('mode');
+        if (reqStudio && reqMode === 'client') {
+            window.isClientReadOnlyMode = true;
+            window.clientTargetStudio = decodeURIComponent(reqStudio).trim();
+            document.body.classList.add('client-readonly-active');
+        }
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('dateInput').value = today;
 
@@ -3821,23 +3947,39 @@
             const balanceFormatted = (balance < 0 ? '-' : '') + '₹' + formatCurrency(Math.abs(balance));
             const deliveryStatus = row.deliveryStatus || 'Not Delivered';
 
-            tr.innerHTML = [
-                inlineEditableCell(row.date || '', currentStudio, row.id, 'date', 'col-date'),
-                inlineEditableCell(workName, currentStudio, row.id, 'name', 'col-workname'),
-                inlineSelectCell(status, currentStudio, row.id, 'workStatus',
-                    ['Pending', 'Received', 'Complete'], 'col-status'),
-                inlineEditableCell(displayMoney(amount), currentStudio, row.id, 'amount', 'col-amount'),
-                inlineEditableCell(displayMoney(receivedAmount), currentStudio, row.id, 'receivedAmount', 'col-received'),
-                '<td class="col-balance" style="font-weight: bold; color: ' + (balance < 0 ? '#ff5252' : '#00e676') + ';">' + escapeHtml(balanceFormatted) + '</td>',
-                inlineSelectCell(deliveryStatus, currentStudio, row.id, 'deliveryStatus',
-                    ['Not Delivered', 'Delivered', 'Received'], 'col-delivery'),
-                '<td class="col-action" style="text-align: center;"><button type="button" class="delete-row-btn" onclick="deleteEntry(\'' + escapeHtml(row.id) + '\', \'' + escapeHtml(currentStudio) + '\')" title="Delete Entry">🗑️ Delete</button></td>'
-            ].join('');
+            if (window.isClientReadOnlyMode) {
+                tr.innerHTML = [
+                    '<td class="col-date">' + escapeHtml(row.date || '') + '</td>',
+                    '<td class="col-workname" style="font-weight: 600; color: #f8fafc;">' + escapeHtml(workName) + '</td>',
+                    '<td class="col-status" style="font-weight: 600; color: ' + (status === 'Complete' ? '#00e676' : (status === 'Received' ? '#38bdf8' : '#fbbf24')) + ';">' + escapeHtml(status) + '</td>',
+                    '<td class="col-amount" style="text-align: right;">' + displayMoney(amount) + '</td>',
+                    '<td class="col-received" style="text-align: right; color: #c084fc;">' + displayMoney(receivedAmount) + '</td>',
+                    '<td class="col-balance" style="font-weight: bold; text-align: right; color: ' + (balance < 0 ? '#ff5252' : '#00e676') + ';">' + escapeHtml(balanceFormatted) + '</td>',
+                    '<td class="col-delivery" style="font-weight: 600; color: ' + (deliveryStatus === 'Delivered' ? '#00e676' : '#ff9800') + ';">' + escapeHtml(deliveryStatus) + '</td>'
+                ].join('');
+            } else {
+                tr.innerHTML = [
+                    inlineEditableCell(row.date || '', currentStudio, row.id, 'date', 'col-date'),
+                    inlineEditableCell(workName, currentStudio, row.id, 'name', 'col-workname'),
+                    inlineSelectCell(status, currentStudio, row.id, 'workStatus',
+                        ['Pending', 'Received', 'Complete'], 'col-status'),
+                    inlineEditableCell(displayMoney(amount), currentStudio, row.id, 'amount', 'col-amount'),
+                    inlineEditableCell(displayMoney(receivedAmount), currentStudio, row.id, 'receivedAmount', 'col-received'),
+                    '<td class="col-balance" style="font-weight: bold; color: ' + (balance < 0 ? '#ff5252' : '#00e676') + ';">' + escapeHtml(balanceFormatted) + '</td>',
+                    inlineSelectCell(deliveryStatus, currentStudio, row.id, 'deliveryStatus',
+                        ['Not Delivered', 'Delivered', 'Received'], 'col-delivery'),
+                    '<td class="col-action" style="text-align: center;"><button type="button" class="delete-row-btn" onclick="deleteEntry(\'' + escapeHtml(row.id) + '\', \'' + escapeHtml(currentStudio) + '\')" title="Delete Entry">🗑️ Delete</button></td>'
+                ].join('');
+            }
             tbody.appendChild(tr);
         });
 
-        applyResponsiveTableLabels('studioDataTable', ['Date', 'Work Name', 'Status', 'Amount', 'Received Amount', 'Balance', 'Delivery Status', 'Action']);
-        enableInlineEditing(tbody);
+        if (window.isClientReadOnlyMode) {
+            applyResponsiveTableLabels('studioDataTable', ['Date', 'Work Name', 'Status', 'Amount', 'Received Amount', 'Balance', 'Delivery Status']);
+        } else {
+            applyResponsiveTableLabels('studioDataTable', ['Date', 'Work Name', 'Status', 'Amount', 'Received Amount', 'Balance', 'Delivery Status', 'Action']);
+            enableInlineEditing(tbody);
+        }
     }
 
     function renderMonthlySaving(entries) {
@@ -4222,6 +4364,15 @@
     function initAdminAuth() {
         if (isAdminAuthInitialized) return;
         isAdminAuthInitialized = true;
+        if (typeof syncStudioClientPasswordsFromCloud === 'function') {
+            syncStudioClientPasswordsFromCloud();
+        }
+        if (window.isClientReadOnlyMode) {
+            setTimeout(() => {
+                openClientAccessModal(window.clientTargetStudio);
+            }, 120);
+            return;
+        }
 
         if (typeof syncStudioPinFromCloud === 'function') {
             syncStudioPinFromCloud();
@@ -4435,6 +4586,7 @@
     window.showUserPassLoginView = showUserPassLoginView;
 
         function openStartupAuthModal() {
+        if (window.isClientReadOnlyMode) return;
         const modal = document.getElementById('adminAuthModal');
         if (!modal) return;
 
@@ -6413,6 +6565,269 @@
         const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
         window.open(waUrl, '_blank');
     }
+    // ==========================================
+    // CLIENT UNIQUE LINK & PASSWORD MANAGEMENT
+    // ==========================================
+    function getStudioClientLink(studioName) {
+        let base = (window.LIVE_APP_URL || (window.location.origin + window.location.pathname));
+        base = base.split("?")[0];
+        return `${base}?studio=${encodeURIComponent(studioName || "Studio")}&mode=client`;
+    }
+    window.getStudioClientLink = getStudioClientLink;
+
+    function getStudioClientPassword(studioName) {
+        if (!studioName) return "1234";
+        const cleanKey = studioName.trim().toLowerCase();
+        return clientStudioPasswords[cleanKey] || "1234";
+    }
+    window.getStudioClientPassword = getStudioClientPassword;
+
+    function saveStudioClientPassword(studioName, newPass) {
+        if (!studioName) return Promise.reject("Studio name is required");
+        const cleanKey = studioName.trim().toLowerCase();
+        const cleanPass = String(newPass || "").trim();
+        clientStudioPasswords[cleanKey] = cleanPass;
+        try {
+            localStorage.setItem("phoenix_studio_client_passwords", JSON.stringify(clientStudioPasswords));
+        } catch(e) {}
+
+        if (typeof firebase !== "undefined" && firebase.firestore) {
+            const updateObj = {};
+            updateObj[cleanKey] = cleanPass;
+            updateObj["updated_at"] = firebase.firestore.FieldValue.serverTimestamp();
+            return firebase.firestore().collection("phoenix_security").doc("studio_client_passwords")
+                .set(updateObj, { merge: true });
+        }
+        return Promise.resolve();
+    }
+    window.saveStudioClientPassword = saveStudioClientPassword;
+
+    function syncStudioClientPasswordsFromCloud() {
+        try {
+            const local = localStorage.getItem("phoenix_studio_client_passwords");
+            if (local) {
+                clientStudioPasswords = JSON.parse(local) || {};
+            }
+        } catch(e) {}
+
+        if (typeof firebase !== "undefined" && firebase.firestore) {
+            try {
+                firebase.firestore().collection("phoenix_security").doc("studio_client_passwords")
+                    .onSnapshot(doc => {
+                        if (doc.exists) {
+                            const data = doc.data() || {};
+                            delete data.updated_at;
+                            clientStudioPasswords = { ...clientStudioPasswords, ...data };
+                            try {
+                                localStorage.setItem("phoenix_studio_client_passwords", JSON.stringify(clientStudioPasswords));
+                            } catch(e) {}
+                        }
+                    }, err => console.warn("Client passwords sync error:", err));
+            } catch(e) {}
+        }
+    }
+    window.syncStudioClientPasswordsFromCloud = syncStudioClientPasswordsFromCloud;
+
+    function openShareStudioLinkModal() {
+        const curStudio = currentOpenStudio || (document.getElementById("studioTitle") ? document.getElementById("studioTitle").innerText.trim() : "") || "WeClick";
+        const modal = document.getElementById("shareClientLinkModal");
+        if (!modal) return;
+
+        const nameEl = document.getElementById("shareModalStudioName");
+        if (nameEl) nameEl.innerText = curStudio;
+
+        const linkInput = document.getElementById("shareStudioLinkInput");
+        if (linkInput) {
+            linkInput.value = getStudioClientLink(curStudio);
+        }
+
+        const passInput = document.getElementById("shareStudioPasswordInput");
+        if (passInput) {
+            passInput.value = getStudioClientPassword(curStudio);
+        }
+
+        const notice = document.getElementById("sharePasswordSaveNotice");
+        if (notice) notice.innerHTML = "";
+        const copyBtn = document.getElementById("copyBtnText");
+        if (copyBtn) copyBtn.innerText = "Copy Link";
+
+        modal.style.display = "flex";
+    }
+    window.openShareStudioLinkModal = openShareStudioLinkModal;
+
+    function closeShareStudioLinkModal() {
+        const modal = document.getElementById("shareClientLinkModal");
+        if (modal) modal.style.display = "none";
+    }
+    window.closeShareStudioLinkModal = closeShareStudioLinkModal;
+
+    function copyShareStudioLink() {
+        const linkInput = document.getElementById("shareStudioLinkInput");
+        if (!linkInput) return;
+        linkInput.select();
+        linkInput.setSelectionRange(0, 99999);
+        try {
+            navigator.clipboard.writeText(linkInput.value).then(() => {
+                const btn = document.getElementById("copyBtnText");
+                if (btn) btn.innerText = "âœ… Copied!";
+                showAppMessage("Client link copied to clipboard!", "success", "Link Copied");
+                setTimeout(() => {
+                    if (btn) btn.innerText = "Copy Link";
+                }, 2500);
+            });
+        } catch(e) {
+            document.execCommand("copy");
+            const btn = document.getElementById("copyBtnText");
+            if (btn) btn.innerText = "âœ… Copied!";
+            setTimeout(() => {
+                if (btn) btn.innerText = "Copy Link";
+            }, 2500);
+        }
+    }
+    window.copyShareStudioLink = copyShareStudioLink;
+
+    function saveCurrentStudioPasswordFromModal() {
+        const curStudio = document.getElementById("shareModalStudioName").innerText.trim();
+        const passInput = document.getElementById("shareStudioPasswordInput");
+        const newPass = passInput ? passInput.value.trim() : "";
+        const notice = document.getElementById("sharePasswordSaveNotice");
+
+        if (!newPass) {
+            if (notice) notice.innerHTML = "<span style=\"color: #ef4444;\">Please enter a password!</span>";
+            return;
+        }
+
+        if (notice) notice.innerHTML = "<span style=\"color: #38bdf8;\"><i class=\"fa-solid fa-spinner fa-spin\"></i> Saving to Firebase...</span>";
+
+        saveStudioClientPassword(curStudio, newPass)
+            .then(() => {
+                if (notice) notice.innerHTML = "<span style=\"color: #10b981;\"><i class=\"fa-solid fa-check\"></i> Password saved successfully for " + escapeHtml(curStudio) + "!</span>";
+                showAppMessage("Password for " + curStudio + " saved!", "success", "Password Updated");
+            })
+            .catch(err => {
+                console.warn(err);
+                if (notice) notice.innerHTML = "<span style=\"color: #10b981;\"><i class=\"fa-solid fa-check\"></i> Password saved locally!</span>";
+            });
+    }
+    window.saveCurrentStudioPasswordFromModal = saveCurrentStudioPasswordFromModal;
+
+    function shareStudioLinkViaWhatsApp() {
+        const currentStudio = document.getElementById("shareModalStudioName").innerText.trim() || "Studio";
+        const linkInput = document.getElementById("shareStudioLinkInput");
+        const link = linkInput ? linkInput.value : "";
+        const passInput = document.getElementById("shareStudioPasswordInput");
+        const pass = passInput ? passInput.value.trim() : "1234";
+
+        const text = `Hello *${currentStudio}*,\n\nPlease find your account statement from *Phoenix Edit Point*:\nðŸ”— *Statement Link:* ${link}\nðŸ”‘ *Access Password:* ${pass}\n\n_You can view your work list, delivery status, remaining balance, and pay directly via UPI._`;
+        const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+        window.open(waUrl, "_blank");
+    }
+    window.shareStudioLinkViaWhatsApp = shareStudioLinkViaWhatsApp;
+
+    function openClientAccessModal(studioName) {
+        const modal = document.getElementById("clientAuthModal");
+        if (!modal) return;
+        const badge = document.getElementById("clientAuthStudioBadge");
+        if (badge) badge.innerText = (studioName || "Studio") + " Statement";
+        const title = document.getElementById("clientAuthTitle");
+        if (title) title.innerText = (studioName || "Studio") + " Statement Access";
+        const err = document.getElementById("clientAuthErrorMsg");
+        if (err) err.innerHTML = "";
+        const passInp = document.getElementById("clientAccessPasswordInput");
+        if (passInp) {
+            passInp.value = "";
+            setTimeout(() => passInp.focus(), 150);
+        }
+        modal.style.display = "flex";
+    }
+    window.openClientAccessModal = openClientAccessModal;
+
+    function verifyClientAccess() {
+        const input = document.getElementById("clientAccessPasswordInput");
+        const val = input ? input.value.trim() : "";
+        const err = document.getElementById("clientAuthErrorMsg");
+        const btn = document.getElementById("btnUnlockClientStatement");
+
+        if (!val) {
+            if (err) err.innerHTML = "<span style=\"color: #ef4444;\">Please enter the password!</span>";
+            return;
+        }
+
+        const studio = window.clientTargetStudio || "Studio";
+        const expected = getStudioClientPassword(studio);
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = "<i class=\"fa-solid fa-spinner fa-spin\"></i> Verifying...";
+        }
+
+        // Fresh check against Firestore if active
+        if (typeof firebase !== "undefined" && firebase.firestore) {
+            firebase.firestore().collection("phoenix_security").doc("studio_client_passwords").get()
+                .then(doc => {
+                    let livePass = expected;
+                    if (doc.exists) {
+                        const data = doc.data() || {};
+                        const cleanKey = studio.trim().toLowerCase();
+                        if (data[cleanKey]) livePass = String(data[cleanKey]).trim();
+                    }
+                    if (val === livePass) {
+                        unlockClientViewSuccess();
+                    } else {
+                        if (btn) { btn.disabled = false; btn.innerHTML = "<i class=\"fa-solid fa-arrow-right-to-bracket\"></i> Unlock &amp; View Statement"; }
+                        if (err) err.innerHTML = "<span style=\"color: #ef4444;\">&#10060; Incorrect Password! Please contact Phoenix Edit Point.</span>";
+                    }
+                })
+                .catch(() => {
+                    if (val === expected) {
+                        unlockClientViewSuccess();
+                    } else {
+                        if (btn) { btn.disabled = false; btn.innerHTML = "<i class=\"fa-solid fa-arrow-right-to-bracket\"></i> Unlock &amp; View Statement"; }
+                        if (err) err.innerHTML = "<span style=\"color: #ef4444;\">&#10060; Incorrect Password!</span>";
+                    }
+                });
+            return;
+        }
+
+        if (val === expected) {
+            unlockClientViewSuccess();
+        } else {
+            if (btn) { btn.disabled = false; btn.innerHTML = "<i class=\"fa-solid fa-arrow-right-to-bracket\"></i> Unlock &amp; View Statement"; }
+            if (err) err.innerHTML = "<span style=\"color: #ef4444;\">&#10060; Incorrect Password! Please contact Phoenix Edit Point.</span>";
+        }
+    }
+    window.verifyClientAccess = verifyClientAccess;
+
+    function unlockClientViewSuccess() {
+        const modal = document.getElementById("clientAuthModal");
+        if (modal) modal.style.display = "none";
+
+        const studio = window.clientTargetStudio || "Studio";
+        const titleEl = document.getElementById("studioTitle");
+        if (titleEl) titleEl.innerText = studio;
+
+        const badge = document.getElementById("clientModeBadge");
+        if (badge) badge.style.display = "inline-flex";
+
+        const lockBtn = document.getElementById("studioModalLockBtn");
+        if (lockBtn) lockBtn.style.display = "none";
+
+        const filterContainer = document.getElementById("modalStudioFilterContainer");
+        if (filterContainer) filterContainer.style.display = "none";
+
+        const shareBtn = document.getElementById("btnShareStudioClientLink");
+        if (shareBtn) shareBtn.style.display = "none";
+
+        const payBtn = document.getElementById("btnStudioPaymentDesk");
+        if (payBtn) payBtn.innerHTML = '<i class="fa-solid fa-credit-card"></i> Pay via UPI QR';
+
+        document.querySelectorAll(".close-sheet-btn").forEach(b => b.style.display = "none");
+        document.querySelectorAll(".col-action-th").forEach(b => b.style.display = "none");
+
+        fetchStudioSheetData(studio);
+        document.getElementById("studioModal").style.display = "flex";
+    }
+    window.unlockClientViewSuccess = unlockClientViewSuccess;
 </script>
 
 <!-- ============================================================
