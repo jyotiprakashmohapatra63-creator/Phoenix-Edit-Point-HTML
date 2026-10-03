@@ -6008,8 +6008,34 @@
         }
     }
 
-        function triggerBlobDownload(blob, filename) {
-        if (!blob) return;
+    function getNativePlugins() {
+        const capacitor = window.Capacitor;
+        if (!capacitor || !capacitor.isNativePlatform || !capacitor.isNativePlatform()) return null;
+        return capacitor.Plugins || null;
+    }
+
+    async function blobToBase64(blob) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result).split(',')[1]);
+            reader.onerror = () => reject(new Error('Could not prepare image file'));
+            reader.readAsDataURL(blob);
+        });
+    }
+
+    async function saveImageBlob(blob, filename) {
+        if (!blob) throw new Error('Image is not ready');
+        const nativePlugins = getNativePlugins();
+        if (nativePlugins && nativePlugins.Filesystem) {
+            await nativePlugins.Filesystem.writeFile({
+                path: `Phoenix Edit Point/${filename}`,
+                data: await blobToBase64(blob),
+                directory: 'DOCUMENTS',
+                recursive: true
+            });
+            return;
+        }
+
         const blobUrl = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = blobUrl;
@@ -6029,8 +6055,8 @@
             if (!canvas) throw new Error("QR Canvas not ready");
             const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
             if (!blob) throw new Error("Could not create image blob");
-            triggerBlobDownload(blob, `Phoenix_QR_${Date.now()}.png`);
-            showAppMessage("QR Code PNG à¬¸à¬«à¬³à¬¤à¬¾à¬° à¬¸à¬¹ Download à¬¹à­‡à¬²à¬¾!", "success", "QR Downloaded");
+            await saveImageBlob(blob, `Phoenix_QR_${Date.now()}.png`);
+            showAppMessage("QR Code PNG saved successfully.", "success", "QR Downloaded");
         } catch(err) {
             console.error(err);
             showAppMessage("QR Download Error: " + err.message, "error", "Error");
@@ -6143,7 +6169,7 @@
         const card = document.getElementById('paymentCard');
         if (!card) return;
 
-        showAppMessage("Studio Payment Poster à¬ªà­à¬°à¬¸à­à¬¤à­à¬¤ à¬¹à­‡à¬‰à¬›à¬¿...", "info", "Please Wait");
+        showAppMessage("Preparing Payment Slate Poster...", "info", "Please Wait");
 
         try {
             let blob = null;
@@ -6184,11 +6210,11 @@
 
             if (!blob) throw new Error("Could not create poster image");
 
-            triggerBlobDownload(blob, `Phoenix_Payment_Slate_${Date.now()}.png`);
-            showAppMessage("Payment Slate Poster à¬¸à¬«à¬³à¬¤à¬¾à¬° à¬¸à¬¹ Download à¬¹à­‡à¬²à¬¾!", "success", "Slate Downloaded");
+            await saveImageBlob(blob, `Phoenix_Payment_Slate_${Date.now()}.png`);
+            showAppMessage("Payment Slate Poster saved successfully.", "success", "Slate Downloaded");
         } catch (err) {
             console.error('Download slate error:', err);
-            showAppMessage("Slate Download à¬¤à­à¬°à­à¬Ÿà¬¿: " + err.message, "error", "à¬¤à­à¬°à­à¬Ÿà¬¿");
+            showAppMessage("Slate download error: " + err.message, "error", "Error");
         }
     }
 
@@ -6198,12 +6224,12 @@
         const noteVal = document.getElementById('qrNoteInput') ? document.getElementById('qrNoteInput').value.trim() : '';
 
         const numAmt = parseFloat(amtVal);
-        const amountStr = (!isNaN(numAmt) && numAmt > 0) ? `â‚¹${numAmt.toLocaleString('en-IN')}` : 'Any Amount';
-        const noteLine = noteVal ? `\nâ– Note: ${noteVal}` : '';
+        const amountStr = (!isNaN(numAmt) && numAmt > 0) ? `Rs. ${numAmt.toLocaleString('en-IN')}` : 'Any Amount';
+        const noteLine = noteVal ? `\nNote: ${noteVal}` : '';
 
-        const shareText = `â– Studio: Phoenix Edit Point\nâ– UPI ID: ${upi}\nâ– Amount: ${amountStr}${noteLine}\n\nScan QR or pay directly via UPI.`;
+        const shareText = `Studio: Phoenix Edit Point\nUPI ID: ${upi}\nAmount: ${amountStr}${noteLine}\n\nScan the attached QR image or pay directly via UPI.`;
 
-        showAppMessage("Photo à¬ªà­à¬°à¬¸à­à¬¤à­à¬¤ à¬¹à­‡à¬‰à¬›à¬¿ (Preparing QR Photo)...", "info", "Please Wait");
+        showAppMessage("Preparing QR photo...", "info", "Please Wait");
 
         try {
             // Generate photo blob (either QR code or Slate poster)
@@ -6218,6 +6244,27 @@
 
             if (photoBlob) {
                 const photoFile = new File([photoBlob], `Phoenix_Payment_QR_${Date.now()}.png`, { type: 'image/png' });
+
+                // Capacitor's Android WebView does not reliably implement the
+                // browser File Share API. Use the native bridge so WhatsApp
+                // receives the PNG attachment, not only the text.
+                const nativePlugins = getNativePlugins();
+                if (nativePlugins && nativePlugins.Filesystem && nativePlugins.Share) {
+                    const saved = await nativePlugins.Filesystem.writeFile({
+                        path: `Phoenix Edit Point/${photoFile.name}`,
+                        data: await blobToBase64(photoBlob),
+                        directory: 'CACHE',
+                        recursive: true
+                    });
+                    closeAppMessage();
+                    await nativePlugins.Share.share({
+                        title: 'Phoenix Edit Point Payment QR',
+                        text: shareText,
+                        files: [saved.uri],
+                        dialogTitle: 'Share Payment QR'
+                    });
+                    return;
+                }
                 
                 // If Web Share API supports file sharing, send PHOTO + TEXT together!
                 if (navigator.canShare && navigator.canShare({ files: [photoFile] })) {
@@ -6246,8 +6293,18 @@
             console.warn("Share API issue:", e);
         }
 
-        // WhatsApp Web / URL fallback
+        // Desktop WhatsApp cannot attach a local image through a URL. Save it
+        // first, then open WhatsApp with the matching payment details.
         closeAppMessage();
+        try {
+            const qrCanvas = document.getElementById('qrCanvas');
+            if (qrCanvas) {
+                const fallbackBlob = await new Promise(res => qrCanvas.toBlob(res, 'image/png'));
+                if (fallbackBlob) await saveImageBlob(fallbackBlob, `Phoenix_Payment_QR_${Date.now()}.png`);
+            }
+        } catch (downloadError) {
+            console.warn('Could not save QR fallback image:', downloadError);
+        }
         const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
         window.open(waUrl, '_blank');
     }
