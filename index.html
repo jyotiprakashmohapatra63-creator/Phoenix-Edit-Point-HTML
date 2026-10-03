@@ -1857,7 +1857,7 @@
                 <i class="fa-solid fa-key"></i> Enter Studio PIN (ଆପଣଙ୍କ PIN ଦିଅନ୍ତୁ)
             </div>
             <div style="font-size: 11px; color: #94a3b8; margin-bottom: 12px;">
-                ନିଜର Firebase ରେ ସେଭ୍ ହୋଇଥିବା Secret PIN ଦିଅନ୍ତୁ।
+                Firebase ରେ ସେଭ୍ ହୋଇଥିବା ନିଜର Secret PIN ଦିଅନ୍ତୁ।
             </div>
             <div style="display: flex; gap: 8px; justify-content: center; align-items: center; margin-bottom: 12px;">
                 <input type="password" id="desktopStudioPinInput" placeholder="PIN" maxlength="6" inputmode="numeric" style="width: 140px; text-align: center; font-size: 20px; letter-spacing: 4px; font-weight: bold; background: #080c14; border: 1px solid #38bdf8; border-radius: 6px; color: #ffffff; padding: 7px 10px;" onkeydown="if(event.key==='Enter')submitStudioPinUnlock();">
@@ -2322,8 +2322,11 @@
 
         if (Array.isArray(cachedEntries)) {
             cachedEntries.forEach(e => {
-                if (e.type !== 'balance' && e.targetSheet !== 'Balance Sheet' && e.studio && typeof e.studio === 'string') {
-                    const sName = e.studio.trim();
+                // Older received-payment records may exist only in Balance Sheet
+                // with sourceStudio. Keep those studios visible as well.
+                const studioName = e.studio || e.sourceStudio;
+                if (studioName && typeof studioName === 'string') {
+                    const sName = studioName.trim();
                     if (sName && !deletedStudios.some(d => d.toLowerCase() === sName.toLowerCase()) && !dynamicStudios.some(s => s.toLowerCase() === sName.toLowerCase())) {
                         dynamicStudios.push(sName);
                     }
@@ -2625,7 +2628,7 @@
 
     function startFirestoreListener() {
         if (!isFirebaseActive || !db) return;
-        // Private cloud data is loaded only after the owner has authenticated.
+        // Do not replace the current view with an unauthenticated empty snapshot.
         if (!currentAdminUser || !isAuthorizedAdminEmail(currentAdminUser.email)) return;
         if (typeof entriesUnsubscribe === 'function') {
             try { entriesUnsubscribe(); } catch(e) {}
@@ -3307,14 +3310,35 @@
         const list = rows || cachedEntries || [];
         const currentStudio = document.getElementById('studioTitle').innerText.trim();
 
-        // Filter exclusively for the selected studio - strictly exclude Balance Sheet entries
-        const studioRows = list.filter(row => {
-            // Must NOT be a Balance Sheet entry
-            if (row.type === 'balance' || row.targetSheet === 'Balance Sheet') return false;
+        // Old versions saved some studio receipts only as Balance Sheet entries.
+        // Convert those sourceStudio records for display without changing Firebase data.
+        const studioRows = list.map(row => {
+            const isBalance = row.type === 'balance' || row.targetSheet === 'Balance Sheet';
+            const sourceStudio = String(row.sourceStudio || '').trim();
+            if (!isBalance || !sourceStudio || sourceStudio.toLowerCase() !== currentStudio.toLowerCase()) return row;
+            const hasPairedStudioEntry = row.syncId && list.some(candidate =>
+                candidate.id !== row.id && candidate.syncId === row.syncId &&
+                candidate.type !== 'balance' && candidate.targetSheet !== 'Balance Sheet'
+            );
+            if (hasPairedStudioEntry) return row;
+            const received = parseFloat(row.income !== undefined ? row.income : row.amount) || 0;
+            return {
+                ...row,
+                studio: sourceStudio,
+                workName: String(row.workName || row.name || 'Received Amount').replace(/\s*\([^)]*\)\s*$/, ''),
+                type: 'studio',
+                targetSheet: 'Studio Sheet',
+                receivedAmount: received,
+                amount: 0,
+                workStatus: row.workStatus || 'Received',
+                deliveryStatus: row.deliveryStatus || 'Received'
+            };
+        }).filter(row => {
+            // Do not show unrelated Balance Sheet rows.
+            if ((row.type === 'balance' || row.targetSheet === 'Balance Sheet') &&
+                String(row.sourceStudio || '').trim().toLowerCase() !== currentStudio.toLowerCase()) return false;
             // Any entry with category Income/Expense that is not a studio entry belongs to Balance Sheet
             if ((row.category === 'Income' || row.category === 'Expense') && row.type !== 'studio') return false;
-            // Exclude duplicate/balance entry if its name has (StudioName) and is an Income record
-            if (row.name && row.name.includes('(' + currentStudio + ')') && !row.receivedAmount && (row.income || row.type === 'balance')) return false;
             if (!row.studio) return false;
             return row.studio.trim().toLowerCase() === currentStudio.toLowerCase();
         });
@@ -3974,8 +3998,8 @@
         const msg = document.getElementById('adminAuthMsg');
         if (msg) msg.innerHTML = '';
         
-        // PINs are stored only in Firebase, never in this browser.
-        togglePinModalMode('unlock');
+        // PIN entry is always available. PIN creation/reset happens only after Google verification.
+        togglePinModalMode();
 
         const modal = document.getElementById('adminAuthModal');
         if (modal) modal.style.display = 'flex';
@@ -4043,13 +4067,13 @@
         return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(16);
     }
 
-    // PIN state is memory-only: Firebase stores the hash and no browser copy is kept.
+    // PIN state is memory-only. Firebase holds a one-way hash; no browser copy exists.
     let cloudStudioPinHash = '';
     let studioPinUnsubscribe = null;
     function syncStudioPinFromCloud() {
         try {
             if (typeof firebase !== 'undefined' && firebase.firestore) {
-                // PIN data remains in Firestore; no PIN hash is copied to this device.
+                // Real-time Firebase synchronization; PIN hash stays in memory only.
                 if (!studioPinUnsubscribe) {
                     studioPinUnsubscribe = firebase.firestore().collection('phoenix_security').doc('studio_auth')
                         .onSnapshot((doc) => {
@@ -4121,7 +4145,7 @@
                         <i class="fa-brands fa-chrome fa-spin" style="margin-right: 6px;"></i> Google Chrome ରେ Browser ଖୋଲିଲା...
                     </div>
                     <div style="color: #cbd5e1; font-size: 11.5px; line-height: 1.5; margin-bottom: 8px;">
-                        Chrome ରେ <b>jyotiprakashmohapatra63@gmail.com</b> ସହ Login କରି ନିଜର PIN ବନାନ୍ତୁ।
+                        Chrome ରେ <b>jyotiprakashmohapatra63@gmail.com</b> ସହ Login କରି PIN set / reset କରନ୍ତୁ।
                     </div>
                     <div style="color: #4ade80; font-size: 11.5px; font-weight: 600;">
                         <i class="fa-solid fa-spinner fa-spin"></i> Chrome ରେ Login ହେବା ମାତ୍ରେ ଏଠାରେ ସଫ୍ଟୱେର୍ ଆପେ Unlock ହୋଇଯିବ!
@@ -4422,7 +4446,7 @@
 
         const pinHash = hashStudioPin(pin1);
 
-        // Save only a one-way PIN hash in Firebase. Never retain or display the PIN.
+        // Save a one-way PIN hash in Firebase only. The PIN itself is never stored.
         if (typeof firebase !== 'undefined' && firebase.firestore) {
             try {
                 firebase.firestore().collection('phoenix_security').doc('studio_auth').set({
