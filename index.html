@@ -4219,11 +4219,11 @@
                 </div>
                 <h2 style="margin:0 0 8px 0;font-size:20px;color:#f8fafc;">Phoenix Edit Point Softwear</h2>
                 <p style="color:#94a3b8;font-size:12.5px;line-height:1.5;margin:0 0 20px 0;">
-                    ଏଠାରେ ଆପଣଙ୍କ ଅଧିକୃତ Google Account (<b>jyotiprakashmohapatra63@gmail.com</b>) ସହ Sign-In କରନ୍ତୁ। Sign-In ହେବା ମାତ୍ରେ Desktop App ଆପେ ଆପେ Unlock ହୋଇଯିବ।
+                    ଏଠାରେ ଆପଣଙ୍କ ଅଧିକୃତ Google Account (<b>jyotiprakashmohapatra63@gmail.com</b>) ସହ Sign-In କରନ୍ତୁ।
                 </p>
                 
                 <div id="bridgeActionContainer">
-                    <button type="button" id="btnExecuteBridgeLogin" onclick="executeBridgeGoogleLogin('${desktopPort}')" style="width:100%;padding:13px 18px;background:#ffffff;color:#1e293b;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 15px rgba(0,0,0,0.4);transition:all 0.2s;">
+                    <button type="button" id="btnExecuteBridgeLogin" onclick="executeBridgeGoogleLogin('${desktopPort}', false)" style="width:100%;padding:13px 18px;background:#ffffff;color:#1e293b;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 15px rgba(0,0,0,0.4);transition:all 0.2s;">
                         <svg width="20" height="20" viewBox="0 0 24 24">
                             <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
                             <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.27 21.43 7.35 24 12 24z"/>
@@ -4232,6 +4232,11 @@
                         </svg>
                         <span>Sign in with Google</span>
                     </button>
+                    <div style="margin-top: 10px;">
+                        <a href="javascript:void(0)" onclick="executeBridgeGoogleLogin('${desktopPort}', true)" style="color: #38bdf8; font-size: 11.5px; text-decoration: underline;">
+                            Popup ନ ଖୋଲିଲେ ଏଠାରେ Direct Redirect କରନ୍ତୁ
+                        </a>
+                    </div>
                 </div>
                 
                 <div id="bridgeStatusMessage" style="margin-top:16px;min-height:20px;font-size:12px;"></div>
@@ -4239,75 +4244,102 @@
         `;
         
         document.body.appendChild(overlay);
+
+        if (typeof firebase !== 'undefined' && firebase.auth) {
+            firebase.auth().getRedirectResult().then(async (cred) => {
+                if (cred && cred.user) {
+                    handleSuccessfulBridgeAuth(cred.user, cred.credential, desktopPort);
+                }
+            }).catch(e => console.warn("Bridge getRedirectResult:", e));
+
+            firebase.auth().onAuthStateChanged((user) => {
+                if (user && user.email && isAuthorizedAdminEmail(user.email)) {
+                    handleSuccessfulBridgeAuth(user, null, desktopPort);
+                }
+            });
+        }
     }
 
-    function executeBridgeGoogleLogin(desktopPort) {
+    async function handleSuccessfulBridgeAuth(user, credential, desktopPort) {
+        const userEmail = (user && user.email) ? user.email.toLowerCase().trim() : '';
         const status = document.getElementById('bridgeStatusMessage');
         const container = document.getElementById('bridgeActionContainer');
+
+        if (!isAuthorizedAdminEmail(userEmail)) {
+            if (typeof firebase !== 'undefined' && firebase.auth) await firebase.auth().signOut();
+            if (status) {
+                status.innerHTML = `
+                    <div style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);border-radius:8px;padding:12px;margin-top:8px;">
+                        <div style="color:#ef4444;font-weight:700;"><i class="fa-solid fa-ban"></i> ⛔ Access Denied!</div>
+                        <div style="color:#fca5a5;font-size:12px;margin-top:4px;"><b>${userEmail}</b> ଅଧିକୃତ Admin ନୁହେଁ।</div>
+                    </div>
+                `;
+            }
+            return;
+        }
+
+        const passcode = computeAdminPasscodeForDate(new Date().toISOString().slice(0, 10));
+        const idToken = (credential && credential.idToken) ? credential.idToken : '';
+        const accessToken = (credential && credential.accessToken) ? credential.accessToken : '';
+
+        // Send unlock signal to Desktop App Loopback Server
+        try {
+            await fetch(`http://127.0.0.1:${desktopPort}/auth-callback?email=${encodeURIComponent(userEmail)}&id_token=${encodeURIComponent(idToken)}&access_token=${encodeURIComponent(accessToken)}&code=${passcode}`, { mode: 'no-cors' });
+        } catch(e) {
+            console.log("Desktop ping finished:", e);
+        }
+
+        if (container) {
+            container.innerHTML = `
+                <div style="background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.35);border-radius:12px;padding:20px;text-align:center;">
+                    <div style="font-size:36px;margin-bottom:8px;">✅</div>
+                    <h3 style="color:#4ade80;margin:0 0 6px 0;font-size:18px;">Login ସଫଳ ହେଲା!</h3>
+                    <p style="color:#cbd5e1;font-size:13px;margin:0 0 14px 0;">Google Account: <b>${userEmail}</b></p>
+                    
+                    <div style="background:#020617;border:1px dashed #38bdf8;border-radius:8px;padding:12px;margin-bottom:14px;">
+                        <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">ଆପଣଙ୍କ Desktop Software Unlock Passcode:</div>
+                        <div style="font-size:30px;font-weight:800;color:#38bdf8;letter-spacing:4px;margin:6px 0;">${passcode}</div>
+                        <div style="font-size:11px;color:#64748b;">(Desktop App ଆପେ ଆପେ Unlock ହୋଇଯିବ)</div>
+                    </div>
+                    
+                    <p style="color:#94a3b8;font-size:12px;margin:0 0 14px 0;">ଏବେ ଆପଣ ଏହି Tab ବନ୍ଦ କରି Desktop Software କୁ ଫେରିପାରିବେ।</p>
+                    <button onclick="window.close()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:white;padding:8px 20px;border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;">Window ବନ୍ଦ କରନ୍ତୁ</button>
+                </div>
+            `;
+        }
+        if (status) status.innerHTML = '';
+    }
+
+    function executeBridgeGoogleLogin(desktopPort, forceRedirect) {
+        const status = document.getElementById('bridgeStatusMessage');
         if (typeof firebase === 'undefined' || !firebase.auth) {
             if (status) status.innerHTML = '<span style="color:#ef4444;">Firebase Auth ଲୋଡ୍ ହୋଇନାହିଁ। Refresh କରନ୍ତୁ।</span>';
             return;
         }
-        
-        if (status) status.innerHTML = '<span style="color:#38bdf8;"><i class="fa-solid fa-spinner fa-spin"></i> Google Account ଚୟନ କରନ୍ତୁ...</span>';
-        
+
         const provider = new firebase.auth.GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
-        
+
+        if (forceRedirect) {
+            if (status) status.innerHTML = '<span style="color:#38bdf8;"><i class="fa-solid fa-spinner fa-spin"></i> Google Login କୁ ଯାଉଛି...</span>';
+            firebase.auth().signInWithRedirect(provider);
+            return;
+        }
+
+        if (status) status.innerHTML = '<span style="color:#38bdf8;"><i class="fa-solid fa-spinner fa-spin"></i> Google Account ଚୟନ କରନ୍ତୁ...</span>';
+
         firebase.auth().signInWithPopup(provider)
-            .then(async (cred) => {
-                const userEmail = (cred.user && cred.user.email) ? cred.user.email.toLowerCase().trim() : '';
-                if (!isAuthorizedAdminEmail(userEmail)) {
-                    await firebase.auth().signOut();
-                    if (status) {
-                        status.innerHTML = `
-                            <div style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);border-radius:8px;padding:12px;margin-top:8px;">
-                                <div style="color:#ef4444;font-weight:700;"><i class="fa-solid fa-ban"></i> ⛔ Access Denied!</div>
-                                <div style="color:#fca5a5;font-size:12px;margin-top:4px;"><b>${userEmail}</b> ଅଧିକୃତ Admin ନୁହେଁ।</div>
-                                <div style="color:#94a3b8;font-size:11px;margin-top:4px;">କେବଳ jyotiprakashmohapatra63@gmail.com ହିଁ ଅନୁମୋଦିତ।</div>
-                            </div>
-                        `;
-                    }
-                    return;
-                }
-                
-                const passcode = computeAdminPasscodeForDate(new Date().toISOString().slice(0, 10));
-                const idToken = (cred.credential && cred.credential.idToken) ? cred.credential.idToken : '';
-                const accessToken = (cred.credential && cred.credential.accessToken) ? cred.credential.accessToken : '';
-                
-                // Send unlock signal to Desktop App Loopback Server
-                try {
-                    await fetch(`http://127.0.0.1:${desktopPort}/auth-callback?email=${encodeURIComponent(userEmail)}&id_token=${encodeURIComponent(idToken)}&access_token=${encodeURIComponent(accessToken)}&code=${passcode}`, { mode: 'no-cors' });
-                } catch(e) {
-                    console.log("Desktop ping finished:", e);
-                }
-                
-                // Show Success UI in Browser
-                if (container) {
-                    container.innerHTML = `
-                        <div style="background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.35);border-radius:12px;padding:20px;text-align:center;">
-                            <div style="font-size:36px;margin-bottom:8px;">✅</div>
-                            <h3 style="color:#4ade80;margin:0 0 6px 0;font-size:18px;">Login ସଫଳ ହେଲା!</h3>
-                            <p style="color:#cbd5e1;font-size:13px;margin:0 0 14px 0;">Google Account: <b>${userEmail}</b></p>
-                            
-                            <div style="background:#020617;border:1px dashed #38bdf8;border-radius:8px;padding:12px;margin-bottom:14px;">
-                                <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">ଆପଣଙ୍କ Desktop Software Unlock Passcode:</div>
-                                <div style="font-size:30px;font-weight:800;color:#38bdf8;letter-spacing:4px;margin:6px 0;">${passcode}</div>
-                                <div style="font-size:11px;color:#64748b;">(Desktop App ଆପେ ଆପେ Unlock ହୋଇଯିବ)</div>
-                            </div>
-                            
-                            <p style="color:#94a3b8;font-size:12px;margin:0 0 14px 0;">ଏବେ ଆପଣ ଏହି Tab ବନ୍ଦ କରି Desktop Software କୁ ଫେରିପାରିବେ।</p>
-                            <button onclick="window.close()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:white;padding:8px 20px;border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;">Window ବନ୍ଦ କରନ୍ତୁ</button>
-                        </div>
-                    `;
-                }
-                if (status) status.innerHTML = '';
+            .then((cred) => {
+                handleSuccessfulBridgeAuth(cred.user, cred.credential, desktopPort);
             })
             .catch(err => {
                 console.error("Bridge login error:", err);
-                if (status) {
-                    status.innerHTML = `<span style="color:#ef4444;"><i class="fa-solid fa-circle-xmark"></i> ${getAuthFriendlyMessage(err)}</span>`;
+                if (err.code === 'auth/popup-blocked' || err.code === 'auth/cancelled-popup-request') {
+                    if (status) status.innerHTML = '<span style="color:#fbbf24;"><i class="fa-solid fa-spinner fa-spin"></i> Popup block ହୋଇଥିବାରୁ Direct Redirect କରାଯାଉଛି...</span>';
+                    firebase.auth().signInWithRedirect(provider);
+                    return;
                 }
+                if (status) status.innerHTML = `<span style="color:#ef4444;"><i class="fa-solid fa-circle-xmark"></i> ${getAuthFriendlyMessage(err)}</span>`;
             });
     }
     window.executeBridgeGoogleLogin = executeBridgeGoogleLogin;
