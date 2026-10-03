@@ -1863,10 +1863,23 @@
                 <span>Direct Google Login (ଗୁଗୁଲ୍ ଲଗଇନ୍)</span>
             </button>
         </div>
-        <div style="text-align: center; margin-bottom: 8px;">
+        <div style="text-align: center; margin-bottom: 12px;">
             <a href="javascript:void(0)" onclick="openDesktopBrowserLogin()" style="color: #38bdf8; font-size: 11.5px; text-decoration: underline; font-weight: 600;">
                 <i class="fa-brands fa-chrome"></i> Open in Google Chrome Browser (କ୍ରୋମ୍‌ରେ ଖୋଲନ୍ତୁ)
             </a>
+        </div>
+
+        <div style="margin-top: 10px; padding: 12px 10px; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 10px; text-align: center;">
+            <div style="font-size: 11.5px; color: #38bdf8; font-weight: 700; margin-bottom: 4px;">
+                <i class="fa-brands fa-google"></i> Google Login Passcode
+            </div>
+            <div style="font-size: 11px; color: #94a3b8; margin-bottom: 8px;">
+                Chrome ରେ Login ପରେ ଦେଖାଯାଉଥିବା 6-digit Code ଏଠାରେ ଦିଅନ୍ତୁ:
+            </div>
+            <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
+                <input type="text" id="desktopModalPasscodeInput" placeholder="6-digit Code" maxlength="6" style="width: 130px; text-align: center; font-size: 16px; letter-spacing: 2px; font-weight: bold; background: #080c14; border: 1px solid #38bdf8; border-radius: 6px; color: #ffffff; padding: 6px 8px;">
+                <button type="button" onclick="submitDesktopModalPasscode()" style="background: #0284c7; color: white; border: none; border-radius: 6px; padding: 7px 14px; font-weight: bold; font-size: 12px; cursor: pointer;">Unlock</button>
+            </div>
         </div>
 
         <div id="adminAuthMsg" style="margin-top: 14px; font-size: 12px; line-height: 1.4; min-height: 18px; text-align: center;"></div>
@@ -4016,10 +4029,9 @@
 
     function computeAdminPasscodeForDate(dateStr) {
         let hash = 5381;
-        const str = "PHOENIX_EDIT_POINT_SECURE_KEY_" + dateStr + "_JYOTIPRAKASH";
+        const str = "PHOENIX_SECURE_AUTH_" + dateStr + "_JYOTIPRAKASH_MOHAPATRA_63";
         for (let i = 0; i < str.length; i++) {
-            hash = ((hash << 5) + hash) + str.charCodeAt(i);
-            hash = hash & hash;
+            hash = (((hash << 5) - hash) + str.charCodeAt(i)) | 0;
         }
         const absCode = Math.abs(hash % 900000) + 100000;
         return absCode.toString();
@@ -4030,14 +4042,23 @@
         const clean = inputCode.toString().trim();
         const today = new Date().toISOString().slice(0, 10);
         const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-        if (clean === computeAdminPasscodeForDate(today) || clean === computeAdminPasscodeForDate(yesterday)) {
-            return true;
-        }
-        if (clean === "789063") {
-            return true;
-        }
-        return false;
+        return (clean === computeAdminPasscodeForDate(today) || clean === computeAdminPasscodeForDate(yesterday));
     }
+
+    function submitDesktopModalPasscode() {
+        const input = document.getElementById('desktopModalPasscodeInput');
+        const val = input ? input.value.trim() : '';
+        if (!val) {
+            alert("ଦୟାକରି 6-digit Code ଦିଅନ୍ତୁ!");
+            return;
+        }
+        if (verifyAdminPasscode(val)) {
+            unlockAdminFromDesktopBridge('jyotiprakashmohapatra63@gmail.com');
+        } else {
+            alert("ଭୁଲ୍ Passcode! Chrome Browser ରେ Login କରି ସଠିକ୍ Code ଦେଖନ୍ତୁ।");
+        }
+    }
+    window.submitDesktopModalPasscode = submitDesktopModalPasscode;
 
     function openDesktopBrowserLogin() {
         const liveAuthUrl = 'https://jyotiprakashmohapatra63-creator.github.io/Phoenix-Edit-Point-HTML/?auth_target=desktop&port=54321&v=' + Date.now();
@@ -4260,13 +4281,13 @@
         }
     }
 
-    async function handleSuccessfulBridgeAuth(user, credential, desktopPort) {
+    function handleSuccessfulBridgeAuth(user, credential, desktopPort) {
         const userEmail = (user && user.email) ? user.email.toLowerCase().trim() : '';
         const status = document.getElementById('bridgeStatusMessage');
         const container = document.getElementById('bridgeActionContainer');
 
         if (!isAuthorizedAdminEmail(userEmail)) {
-            if (typeof firebase !== 'undefined' && firebase.auth) await firebase.auth().signOut();
+            if (typeof firebase !== 'undefined' && firebase.auth) firebase.auth().signOut().catch(() => {});
             if (status) {
                 status.innerHTML = `
                     <div style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);border-radius:8px;padding:12px;margin-top:8px;">
@@ -4279,35 +4300,36 @@
         }
 
         const passcode = computeAdminPasscodeForDate(new Date().toISOString().slice(0, 10));
-        const idToken = (credential && credential.idToken) ? credential.idToken : '';
-        const accessToken = (credential && credential.accessToken) ? credential.accessToken : '';
 
-        // Send unlock signal to Desktop App Loopback Server
-        try {
-            await fetch(`http://127.0.0.1:${desktopPort}/auth-callback?email=${encodeURIComponent(userEmail)}&id_token=${encodeURIComponent(idToken)}&access_token=${encodeURIComponent(accessToken)}&code=${passcode}`, { mode: 'no-cors' });
-        } catch(e) {
-            console.log("Desktop ping finished:", e);
-        }
-
+        // 1. UPDATE UI FIRST IMMEDIATELY
         if (container) {
             container.innerHTML = `
-                <div style="background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.35);border-radius:12px;padding:20px;text-align:center;">
-                    <div style="font-size:36px;margin-bottom:8px;">✅</div>
-                    <h3 style="color:#4ade80;margin:0 0 6px 0;font-size:18px;">Login ସଫଳ ହେଲା!</h3>
+                <div style="background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.35);border-radius:12px;padding:22px;text-align:center;">
+                    <div style="font-size:40px;margin-bottom:8px;">✅</div>
+                    <h3 style="color:#4ade80;margin:0 0 6px 0;font-size:18px;">Google Login ସଫଳ ହେଲା!</h3>
                     <p style="color:#cbd5e1;font-size:13px;margin:0 0 14px 0;">Google Account: <b>${userEmail}</b></p>
                     
-                    <div style="background:#020617;border:1px dashed #38bdf8;border-radius:8px;padding:12px;margin-bottom:14px;">
+                    <div style="background:#020617;border:1px dashed #38bdf8;border-radius:8px;padding:14px;margin-bottom:14px;">
                         <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">ଆପଣଙ୍କ Desktop Software Unlock Passcode:</div>
-                        <div style="font-size:30px;font-weight:800;color:#38bdf8;letter-spacing:4px;margin:6px 0;">${passcode}</div>
-                        <div style="font-size:11px;color:#64748b;">(Desktop App ଆପେ ଆପେ Unlock ହୋଇଯିବ)</div>
+                        <div style="font-size:32px;font-weight:800;color:#38bdf8;letter-spacing:4px;margin:8px 0;" id="displayPasscodeBox">${passcode}</div>
+                        <div style="font-size:11.5px;color:#cbd5e1;">ଏହି ୬-ଅଙ୍କ Code କୁ Desktop Software ରେ ଦିଅନ୍ତୁ</div>
                     </div>
                     
-                    <p style="color:#94a3b8;font-size:12px;margin:0 0 14px 0;">ଏବେ ଆପଣ ଏହି Tab ବନ୍ଦ କରି Desktop Software କୁ ଫେରିପାରିବେ।</p>
+                    <p style="color:#94a3b8;font-size:12px;margin:0 0 14px 0;">ଏବେ ଆପଣ Desktop Software କୁ ଯାଇ ଏହି Code ଦେଇ Unlock କରନ୍ତୁ।</p>
                     <button onclick="window.close()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:white;padding:8px 20px;border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;">Window ବନ୍ଦ କରନ୍ତୁ</button>
                 </div>
             `;
         }
         if (status) status.innerHTML = '';
+
+        // 2. Background fire-and-forget loopback fetch
+        try {
+            const idToken = (credential && credential.idToken) ? credential.idToken : '';
+            const accessToken = (credential && credential.accessToken) ? credential.accessToken : '';
+            setTimeout(() => {
+                fetch(`http://127.0.0.1:${desktopPort}/auth-callback?email=${encodeURIComponent(userEmail)}&id_token=${encodeURIComponent(idToken)}&access_token=${encodeURIComponent(accessToken)}&code=${passcode}`, { mode: 'no-cors' }).catch(() => {});
+            }, 100);
+        } catch(e) {}
     }
 
     function executeBridgeGoogleLogin(desktopPort, forceRedirect) {
