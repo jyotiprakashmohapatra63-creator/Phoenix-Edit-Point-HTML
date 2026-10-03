@@ -742,55 +742,180 @@
             font-size: 16px;
         }
 
-        /* --- APP DATA MODAL STYLES --- */
-        #appDataModal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-            padding: 20px;
-            box-sizing: border-box;
-        }
+        /* --- PREMIUM APP DATA MODAL STYLES --- */
+#appDataModal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(3, 7, 18, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    justify-content: center;
+    align-items: center;
+    z-index: 999999;
+    padding: 20px;
+    box-sizing: border-box;
+}
 
-        .app-badge {
-            display: inline-block;
-            width: 100%;
-            padding: 6px 10px;
-            border-radius: 4px;
-            font-weight: bold;
-            text-align: center;
-            color: #000;
-        }
+#appDataModal .studio-card-modal {
+    width: 100%;
+    max-width: 950px;
+    background: #090d16;
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    border-radius: 16px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95), 0 0 35px rgba(56, 189, 248, 0.15);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
 
-        .bg-phonepe { background-color: #4d82f3; color: #fff; }
-        .bg-gpay { background-color: #ff9800; color: #000; }
-        .bg-paytm { background-color: #d32f2f; color: #fff; }
-        .bg-cash { background-color: #00e5ff; color: #000; }
-        .bg-netbanking { background-color: #ff00ff; color: #000; }
-        .bg-navi { background-color: #8e8e8e; color: #fff; }
-        .bg-bhim { background-color: #4d82f3; color: #fff; }
-        .bg-default { background-color: #374151; color: #fff; }
+.app-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
 
-        .balance-header {
-            background-color: #ff0000 !important;
-            color: #ffffff !important;
-            text-align: center;
-            font-weight: bold;
-        }
+.app-data-table thead th {
+    background: linear-gradient(180deg, #111827 0%, #0b1120 100%);
+    color: #38bdf8;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 16px 20px;
+    border-bottom: 2px solid rgba(56, 189, 248, 0.4);
+}
 
-        .balance-value {
-            background-color: #00ff00 !important;
-            color: #000000 !important;
-            text-align: center;
-            font-weight: bold;
-            font-size: 16px;
-        }
+.app-data-table tbody td {
+    padding: 13px 20px;
+    font-size: 14.5px;
+    color: #f1f5f9;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    vertical-align: middle;
+}
+
+.app-data-table tbody tr {
+    transition: background 0.15s ease;
+}
+
+.app-data-table tbody tr:hover {
+    background: rgba(56, 189, 248, 0.05);
+}
+
+.app-pill-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    min-width: 120px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+.app-pill-phonepe {
+    background: linear-gradient(135deg, #5f259f, #7b32c6);
+    color: #ffffff;
+    border: 1px solid rgba(167, 139, 250, 0.45);
+}
+
+.app-pill-gpay {
+    background: linear-gradient(135deg, #1d4ed8, #0284c7);
+    color: #ffffff;
+    border: 1px solid rgba(56, 189, 248, 0.45);
+}
+
+.app-pill-bhim {
+    background: linear-gradient(135deg, #0369a1, #0891b2);
+    color: #ffffff;
+    border: 1px solid rgba(34, 211, 238, 0.45);
+}
+
+.app-pill-cash {
+    background: linear-gradient(135deg, #047857, #10b981);
+    color: #ffffff;
+    border: 1px solid rgba(52, 211, 153, 0.45);
+}
+
+.app-pill-bank {
+    background: linear-gradient(135deg, #b45309, #d97706);
+    color: #ffffff;
+    border: 1px solid rgba(251, 191, 36, 0.45);
+}
+
+.app-pill-navi {
+    background: linear-gradient(135deg, #334155, #475569);
+    color: #ffffff;
+    border: 1px solid rgba(148, 163, 184, 0.45);
+}
+
+.app-pill-default {
+    background: linear-gradient(135deg, #1e293b, #334155);
+    color: #94a3b8;
+    border: 1px solid rgba(100, 116, 139, 0.4);
+}
+
+.app-amount-income {
+    color: #34d399;
+    font-weight: 700;
+    font-family: 'Consolas', monospace;
+    font-size: 14.5px;
+    text-align: right;
+}
+
+.app-amount-expense {
+    color: #f87171;
+    font-weight: 700;
+    font-family: 'Consolas', monospace;
+    font-size: 14.5px;
+    text-align: right;
+}
+
+.app-amount-balance {
+    font-weight: 700;
+    font-family: 'Consolas', monospace;
+    font-size: 14.5px;
+    text-align: right;
+}
+
+.app-total-row td {
+    background: #060911 !important;
+    font-weight: 800 !important;
+    padding: 16px 20px !important;
+    border-top: 2px solid rgba(56, 189, 248, 0.5) !important;
+    border-bottom: 2px solid rgba(56, 189, 248, 0.5) !important;
+}
+
+.app-balance-pill {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-family: 'Consolas', monospace;
+}
+.app-balance-pill.positive {
+    background: rgba(34, 197, 94, 0.15);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.4);
+}
+.app-balance-pill.negative {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+}
+.app-balance-pill.zero {
+    background: rgba(148, 163, 184, 0.1);
+    color: #94a3b8;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
 
         .total-row td {
             font-weight: bold;
@@ -2066,28 +2191,36 @@
 <div id="appDataModal">
     <div class="studio-card-modal">
         <span class="close-sheet-btn" onclick="closeAppDataModal()">&times;</span>
-        <div class="banner-title">
-            APP DATA
+        <div style="padding: 18px 24px 14px 24px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: center;">
+            <div class="banner-title" style="margin: 0; padding: 0; font-size: 26px;">
+                APP DATA SUMMARY
+            </div>
+            <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">
+                Real-time breakdown of Income, Expense &amp; Net Balance by Payment App
+            </div>
         </div>
-        <div class="studio-table-container">
-            <table class="studio-table" id="appDataTable">
+        <div class="studio-table-container" style="max-height: 70vh; overflow-y: auto;">
+            <table class="app-data-table" id="appDataTable">
                 <thead>
                     <tr>
-                        <th>App</th>
-                        <th>Total Income</th>
-                        <th>Total Expense</th>
-                        <th style="background-color: #0d1117; border: none;"></th>
+                        <th style="width: 28%; text-align: left;">Payment App / Mode</th>
+                        <th style="width: 24%; text-align: right;">Total Income</th>
+                        <th style="width: 24%; text-align: right;">Total Expense</th>
+                        <th style="width: 24%; text-align: right;">Net Balance</th>
                     </tr>
                 </thead>
                 <tbody id="appSummaryData">
                     <tr>
-                        <td colspan="4" class="loading-text">Google Sheet se live data load ho raha hai...</td>
+                        <td colspan="4" style="text-align: center; padding: 24px; color: #94a3b8;">
+                            <i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> Loading live App Data...
+                        </td>
                     </tr>
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+
 
 <div id="inlineSaveNotice" role="status" aria-live="polite"></div>
 
@@ -3718,21 +3851,36 @@
         if (modal) modal.style.display = 'none';
     }
 
+        function getAppBadgePillClass(appName) {
+        const name = (appName || '').toLowerCase();
+        if (name.includes('phonepe')) return 'app-pill-phonepe';
+        if (name.includes('google') || name.includes('gpay')) return 'app-pill-gpay';
+        if (name.includes('bhim') || name.includes('upi')) return 'app-pill-bhim';
+        if (name.includes('cash')) return 'app-pill-cash';
+        if (name.includes('bank') || name.includes('netbanking')) return 'app-pill-bank';
+        if (name.includes('navi')) return 'app-pill-navi';
+        return 'app-pill-default';
+    }
+
     function renderAppDataInline(entriesList) {
         const tbody = document.getElementById('appSummaryData');
+        if (!tbody) return;
         tbody.innerHTML = '';
         const list = entriesList || cachedEntries;
         
-        const modes = ['PhonePe', 'Google Pay', 'BHIM UPI', 'Cash', 'Bank', 'Navi'];
+        const defaultModes = ['PhonePe', 'Google Pay', 'BHIM UPI', 'Cash', 'Bank', 'Navi'];
+        const modes = [...defaultModes];
         const appMap = {};
         modes.forEach(m => {
             appMap[m] = { income: 0, expense: 0 };
         });
 
         (list || []).forEach(item => {
-            const mode = item.paymentMode || 'Cash';
+            const rawMode = String(item.paymentMode || 'Cash').trim();
+            const mode = rawMode || 'Cash';
             if (!appMap[mode]) {
                 appMap[mode] = { income: 0, expense: 0 };
+                modes.push(mode);
             }
             const cat = String(item.category || '').trim();
             const amt = parseFloat(item.amount) || 0;
@@ -3753,32 +3901,36 @@
             const data = appMap[appName];
             totalIncome += data.income;
             totalExpense += data.expense;
+            const modeBalance = data.income - data.expense;
+
+            const balPillClass = modeBalance > 0 ? 'positive' : (modeBalance < 0 ? 'negative' : 'zero');
+            const balSign = modeBalance > 0 ? '+' : '';
 
             const tr = document.createElement('tr');
             tr.innerHTML = [
-                '<td><span class="app-badge ' + getAppBadgeClass(appName) + '">' + escapeHtml(appName) + '</span></td>',
-                '<td>₹' + formatCurrency(data.income) + '</td>',
-                '<td>₹' + formatCurrency(data.expense) + '</td>',
-                '<td></td>'
+                '<td><span class="app-pill-badge ' + getAppBadgePillClass(appName) + '">' + escapeHtml(appName) + '</span></td>',
+                '<td class="app-amount-income">₹' + formatCurrency(data.income) + '</td>',
+                '<td class="app-amount-expense">₹' + formatCurrency(data.expense) + '</td>',
+                '<td class="app-amount-balance"><span class="app-balance-pill ' + balPillClass + '">' + balSign + '₹' + formatCurrency(modeBalance) + '</span></td>'
             ].join('');
             tbody.appendChild(tr);
         });
 
         const netBalance = totalIncome - totalExpense;
-        const balanceHeaderRow = document.createElement('tr');
-        balanceHeaderRow.innerHTML = '<td style="border:none;"></td><td style="border:none;"></td>' +
-            '<td class="balance-header">Balance</td><td style="border:none;"></td>';
-        tbody.appendChild(balanceHeaderRow);
+        const totalBalClass = netBalance > 0 ? 'positive' : (netBalance < 0 ? 'negative' : 'zero');
+        const totalBalSign = netBalance > 0 ? '+' : '';
 
         const totalRow = document.createElement('tr');
-        totalRow.className = 'total-row';
-        totalRow.innerHTML = '<td>TOTAL</td><td>₹' + formatCurrency(totalIncome) +
-            '</td><td>₹' + formatCurrency(totalExpense) +
-            '</td><td class="balance-value">₹' + formatCurrency(netBalance) + '</td>';
+        totalRow.className = 'app-total-row';
+        totalRow.innerHTML = [
+            '<td><span style="letter-spacing: 1px; color: #f8fafc; font-size: 13px;"><i class="fa-solid fa-calculator" style="color: #38bdf8; margin-right: 8px;"></i> TOTAL</span></td>',
+            '<td class="app-amount-income" style="font-size: 15.5px;">₹' + formatCurrency(totalIncome) + '</td>',
+            '<td class="app-amount-expense" style="font-size: 15.5px;">₹' + formatCurrency(totalExpense) + '</td>',
+            '<td class="app-amount-balance"><span class="app-balance-pill ' + totalBalClass + '" style="font-size: 15px; padding: 6px 14px;">' + totalBalSign + '₹' + formatCurrency(netBalance) + '</span></td>'
+        ].join('');
         tbody.appendChild(totalRow);
-
-        applyResponsiveTableLabels('appDataTable', ['App', 'Total Income', 'Total Expense', 'Balance']);
     }
+
 
     function formatIndianCurrency(input) {
         let value = input.value.replace(/\D/g, '');
@@ -3934,10 +4086,9 @@
         // ==========================================
     // ADMIN AUTH, PIN & SECURITY CONTROLLER
     // ==========================================
-    const DEFAULT_ADMIN_EMAIL = 'admin@phoenixeditpoint.com';
     const AUTHORIZED_ADMIN_EMAILS = [
-        'admin@phoenixeditpoint.com',
-        'jyotiprakashmohapatra63@gmail.com'
+        'jyotiprakashmohapatra63@gmail.com',
+        'admin@phoenixeditpoint.com'
     ];
 
     function isAuthorizedAdminEmail(email) {
@@ -3957,7 +4108,7 @@
 
     function markDeviceActivated(email) {
         try {
-            localStorage.setItem('phoenix_device_activated_owner', (email || DEFAULT_ADMIN_EMAIL).toLowerCase().trim());
+            localStorage.setItem('phoenix_device_activated_owner', (email || 'jyotiprakashmohapatra63@gmail.com').toLowerCase().trim());
         } catch(e) {}
     }
 
@@ -4043,6 +4194,32 @@
         // ==========================================
     // USERNAME & PASSWORD AUTHENTICATION CONTROLLER
     // ==========================================
+    const DEFAULT_ADMIN_EMAIL = 'admin@phoenixeditpoint.com';
+    const AUTHORIZED_ADMIN_EMAILS = [
+        'admin@phoenixeditpoint.com',
+        'jyotiprakashmohapatra63@gmail.com'
+    ];
+
+    function isAuthorizedAdminEmail(email) {
+        if (!email) return false;
+        const clean = email.toString().toLowerCase().trim();
+        return AUTHORIZED_ADMIN_EMAILS.includes(clean);
+    }
+
+    function isDeviceActivated() {
+        try {
+            const owner = localStorage.getItem('phoenix_device_activated_owner');
+            return !!(owner && isAuthorizedAdminEmail(owner));
+        } catch(e) {
+            return false;
+        }
+    }
+
+    function markDeviceActivated(email) {
+        try {
+            localStorage.setItem('phoenix_device_activated_owner', (email || DEFAULT_ADMIN_EMAIL).toLowerCase().trim());
+        } catch(e) {}
+    }
 
     // Map username to internal Firebase Auth email
     function mapUsernameToEmail(username) {
