@@ -1851,13 +1851,27 @@
             </div>
         </div>
 
-        <!-- 1. PIN UNLOCK VIEW -->
+        <!-- 0. DEVICE ACTIVATION REQUIRED (ONLY FOR FRESH INSTALL / REINSTALL) -->
+        <div id="desktopDeviceActivationView" style="display: none; padding: 20px 16px; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(239, 68, 68, 0.5); border-radius: 12px; text-align: center; margin-bottom: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.6);">
+            <div style="font-size: 34px; margin-bottom: 8px;">🛡️</div>
+            <div style="font-size: 14px; color: #38bdf8; font-weight: 700; margin-bottom: 6px;">
+                New Setup / Device Activation Required
+            </div>
+            <div style="font-size: 11.5px; color: #f87171; line-height: 1.5; margin-bottom: 14px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 6px; padding: 8px;">
+                ନୂଆ Software Install ରେ ସୁରକ୍ଷା ପାଇଁ ପ୍ରଥମେ Google Verification (jyotiprakashmohapatra63@gmail.com) କରି Device Activate କରନ୍ତୁ। PIN ଏବେ କାମ କରିବ ନାହିଁ।
+            </div>
+            <button type="button" onclick="openDesktopBrowserLogin()" style="width: 100%; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: white; border: 1px solid #38bdf8; border-radius: 8px; padding: 12px 16px; font-weight: bold; font-size: 13.5px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4);">
+                <i class="fa-brands fa-google"></i> Activate Device with Google (Verify କରନ୍ତୁ)
+            </button>
+        </div>
+
+        <!-- 1. PIN UNLOCK VIEW (FOR DAILY USE ONCE ACTIVATED) -->
         <div id="desktopPinUnlockView" style="padding: 18px 14px; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 12px; text-align: center; margin-bottom: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.6);">
             <div style="font-size: 13.5px; color: #38bdf8; font-weight: 700; margin-bottom: 4px;">
                 <i class="fa-solid fa-key"></i> Enter Studio PIN (ଆପଣଙ୍କ PIN ଦିଅନ୍ତୁ)
             </div>
             <div style="font-size: 11px; color: #94a3b8; margin-bottom: 12px;">
-                ନିଜର Firebase ରେ ସେଭ୍ ହୋଇଥିବା Secret PIN ଦିଅନ୍ତୁ।
+                ନିଜର Secret PIN ଦେଇ ସିଧାସଳଖ Unlock କରନ୍ତୁ (No Google Required)।
             </div>
             <div style="display: flex; gap: 8px; justify-content: center; align-items: center; margin-bottom: 12px;">
                 <input type="password" id="desktopStudioPinInput" placeholder="PIN" maxlength="6" inputmode="numeric" style="width: 140px; text-align: center; font-size: 20px; letter-spacing: 4px; font-weight: bold; background: #080c14; border: 1px solid #38bdf8; border-radius: 6px; color: #ffffff; padding: 7px 10px;" onkeydown="if(event.key==='Enter')submitStudioPinUnlock();">
@@ -1867,12 +1881,12 @@
             </div>
             <div style="display: flex; justify-content: center; gap: 12px; font-size: 11.5px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px;">
                 <a href="javascript:void(0)" onclick="openDesktopBrowserLogin()" style="color: #38bdf8; text-decoration: underline; font-weight: 600;">
-                    <i class="fa-brands fa-google"></i> Forgot / Reset PIN — Verify with Google
+                    <i class="fa-solid fa-key"></i> Forgot / Change PIN (Google Verification ଦରକାର)
                 </a>
             </div>
         </div>
 
-        <div style="text-align: center; margin-bottom: 12px;">
+        <div id="desktopGoogleLoginLinkWrap" style="text-align: center; margin-bottom: 12px;">
             <a href="javascript:void(0)" onclick="openDesktopBrowserLogin()" style="color: #38bdf8; font-size: 12px; text-decoration: underline; font-weight: 600;">
                 <i class="fa-brands fa-google"></i> Login with Google (Chrome ରେ Verify କରନ୍ତୁ)
             </a>
@@ -2695,6 +2709,16 @@
                 db = firebase.firestore();
                 isFirebaseActive = true;
                 updateDbBadge();
+
+                // Attempt anonymous auth if not signed in (helps if rules require request.auth != null)
+                if (window.firebase && firebase.auth && !firebase.auth().currentUser) {
+                    firebase.auth().signInAnonymously().then(() => {
+                        console.log("Firebase anonymous auth established");
+                        startFirestoreListener();
+                    }).catch(e => {
+                        console.warn("signInAnonymously notice:", e);
+                    });
+                }
 
                 // Start real-time Firestore sync immediately
                 startFirestoreListener();
@@ -3793,12 +3817,13 @@
     function isAuthorizedAdminEmail(email) {
         if (!email) return false;
         const normalized = email.toLowerCase().trim();
-        if (normalized === 'jyotiprakashmohapatra63@gmail.com' || normalized === 'admin@phoenixeditpoint.com') {
-            return true;
-        }
+        return normalized === 'jyotiprakashmohapatra63@gmail.com';
+    }
+
+    function isDeviceActivated() {
         try {
-            const token = btoa(normalized);
-            return PHOENIX_SECURE_ADMIN_TOKENS.includes(token);
+            const owner = localStorage.getItem('phoenix_device_activated_owner');
+            return !!(owner && isAuthorizedAdminEmail(owner));
         } catch(e) {
             return false;
         }
@@ -3819,16 +3844,17 @@
 
         // Restore cached desktop admin session within 24 hours
         try {
-            const savedEmail = localStorage.getItem('phoenix_admin_verified_email');
-            const savedTime = parseInt(localStorage.getItem('phoenix_admin_verified_time') || '0', 10);
-            if (savedEmail && isAuthorizedAdminEmail(savedEmail) && (Date.now() - savedTime < 24 * 60 * 60 * 1000)) {
+            const savedEmail = sessionStorage.getItem('phoenix_admin_verified_email');
+            if (savedEmail && isAuthorizedAdminEmail(savedEmail)) {
                 currentAdminUser = {
                     email: savedEmail,
                     displayName: 'Jyotiprakash Mohapatra',
-                    uid: 'cached-admin-' + savedEmail
+                    uid: 'session-admin-' + savedEmail
                 };
                 updateAdminAuthUI(currentAdminUser);
-                startFirestoreListener();
+            } else {
+                currentAdminUser = null;
+                updateAdminAuthUI(null);
             }
         } catch(e) {}
 
@@ -3852,9 +3878,8 @@
                         updateAdminAuthUI(user);
                         startFirestoreListener();
                     } else {
-                        const savedEmail = localStorage.getItem('phoenix_admin_verified_email');
-                        const savedTime = parseInt(localStorage.getItem('phoenix_admin_verified_time') || '0', 10);
-                        if (savedEmail && isAuthorizedAdminEmail(savedEmail) && (Date.now() - savedTime < 24 * 60 * 60 * 1000)) {
+                        const savedEmail = sessionStorage.getItem('phoenix_admin_verified_email');
+                        if (savedEmail && isAuthorizedAdminEmail(savedEmail)) {
                             currentAdminUser = {
                                 email: savedEmail,
                                 displayName: 'Jyotiprakash Mohapatra',
@@ -4039,16 +4064,29 @@
         const msg = document.getElementById('adminAuthMsg');
         if (msg) msg.innerHTML = '';
         
-        // PINs are stored only in Firebase, never in this browser.
-        togglePinModalMode('unlock');
+        const isActivated = isDeviceActivated();
+        const pinView = document.getElementById('desktopPinUnlockView');
+        const activationView = document.getElementById('desktopDeviceActivationView');
+        const googleLinkWrap = document.getElementById('desktopGoogleLoginLinkWrap');
+
+        if (!isActivated) {
+            // Fresh install or uninstalled/reinstalled: PIN disabled! Must activate with Google first
+            if (pinView) pinView.style.display = 'none';
+            if (activationView) activationView.style.display = 'block';
+            if (googleLinkWrap) googleLinkWrap.style.display = 'none';
+        } else {
+            // Device already activated: Direct PIN unlock!
+            if (activationView) activationView.style.display = 'none';
+            if (pinView) pinView.style.display = 'block';
+            if (googleLinkWrap) googleLinkWrap.style.display = 'block';
+            setTimeout(() => {
+                const el = document.getElementById('desktopStudioPinInput');
+                if (el) el.focus();
+            }, 150);
+        }
 
         const modal = document.getElementById('adminAuthModal');
         if (modal) modal.style.display = 'flex';
-
-        setTimeout(() => {
-            const el = document.getElementById('desktopStudioPinInput');
-            if (el) el.focus();
-        }, 150);
     }
 
     function closeAdminAuthModal() {
@@ -4149,6 +4187,12 @@
     window.togglePinModalMode = togglePinModalMode;
 
     function submitStudioPinUnlock() {
+        if (!isDeviceActivated()) {
+            alert("⛔ ନୂଆ Software Install ରେ ସୁରକ୍ଷା ପାଇଁ ପ୍ରଥମେ Google Verification ଦେଇ Device Activate କରନ୍ତୁ। PIN କାମ କରିବ ନାହିଁ।");
+            openAdminAuthModal(pendingTargetType);
+            return;
+        }
+
         const input = document.getElementById('desktopStudioPinInput');
         const val = input ? input.value.trim() : '';
         const msg = document.getElementById('adminAuthMsg');
@@ -4159,16 +4203,34 @@
         }
 
         if (!cloudStudioPinHash) {
-            if (msg) msg.innerHTML = '<span style="color: #fbbf24;"><i class="fa-solid fa-circle-info"></i> PIN Firebase ରୁ ଲୋଡ୍ ହୋଇନାହିଁ। Google verification ଦେଇ PIN reset କରନ୍ତୁ।</span>';
+            if (msg) msg.innerHTML = '<span style="color: #fbbf24;"><i class="fa-solid fa-circle-info"></i> PIN Firebase ରେ ସେଭ୍ ହୋଇନାହିଁ। Google Verification କରି ପ୍ରଥମେ PIN ବନାନ୍ତୁ।</span>';
             return;
         }
 
         if (hashStudioPin(val) === cloudStudioPinHash) {
-            unlockAdminFromDesktopBridge('jyotiprakashmohapatra63@gmail.com');
+            // Direct Unlock with PIN! No Google verification needed!
+            currentAdminUser = {
+                email: 'jyotiprakashmohapatra63@gmail.com',
+                displayName: 'Jyotiprakash Mohapatra',
+                uid: 'pin-admin-' + Date.now()
+            };
+            try {
+                sessionStorage.setItem('phoenix_admin_verified_email', 'jyotiprakashmohapatra63@gmail.com');
+            } catch(e) {}
+            updateAdminAuthUI(currentAdminUser);
+            startFirestoreListener();
+            refreshOpenModals();
+            closeAdminAuthModal();
+            showAppMessage("🔓 PIN ଯାଞ୍ଚ ସଫଳ! ସଫ୍ଟୱେର୍ Unlock ହୋଇଗଲା।", "success", "Welcome");
+            if (pendingTargetType) {
+                const target = pendingTargetType;
+                pendingTargetType = '';
+                openRequestedSheet(target);
+            }
         } else {
             alert("❌ ଭୁଲ୍ PIN! ଦୟାକରି ସଠିକ୍ PIN ଦିଅନ୍ତୁ।");
             if (msg) {
-                msg.innerHTML = '<span style="color: #ef4444;"><i class="fa-solid fa-circle-xmark"></i> ଭୁଲ୍ PIN! ସଠିକ୍ PIN ଦିଅନ୍ତୁ।</span>';
+                msg.innerHTML = '<span style="color: #ef4444;"><i class="fa-solid fa-circle-xmark"></i> ଭୁଲ୍ PIN! ସଠିକ୍ PIN ଦିଅନ୍ତୁ କିମ୍ବା Reset କରନ୍ତୁ।</span>';
             }
         }
     }
@@ -4203,34 +4265,27 @@
     async function unlockAdminFromDesktopBridge(email, idToken, accessToken) {
         if (!isAuthorizedAdminEmail(email)) return;
 
-        if (idToken && typeof firebase !== 'undefined' && firebase.auth) {
-            try {
-                const credential = firebase.auth.GoogleAuthProvider.credential(idToken, accessToken || null);
-                const userCred = await firebase.auth().signInWithCredential(credential);
-                currentAdminUser = userCred.user;
-            } catch(e) {
-                console.warn("Desktop bridge signInWithCredential fallback:", e);
-                currentAdminUser = {
-                    email: email,
-                    displayName: 'Jyotiprakash Mohapatra',
-                    uid: 'desktop-admin-' + Date.now()
-                };
-            }
-        } else {
-            currentAdminUser = {
-                email: email,
-                displayName: 'Jyotiprakash Mohapatra',
-                uid: 'desktop-admin-' + Date.now()
-            };
-        }
+        // Permanently activate this device on owner Google verification
+        try {
+            localStorage.setItem('phoenix_device_activated_owner', email.toLowerCase().trim());
+        } catch(e) {}
 
-        localStorage.setItem('phoenix_admin_verified_email', email);
-        localStorage.setItem('phoenix_admin_verified_time', Date.now().toString());
+        currentAdminUser = {
+            email: email,
+            displayName: 'Jyotiprakash Mohapatra',
+            uid: 'desktop-admin-' + Date.now()
+        };
+
+        // In-session login (auto-cleared when software window is closed)
+        try {
+            sessionStorage.setItem('phoenix_admin_verified_email', email);
+        } catch(e) {}
+
         updateAdminAuthUI(currentAdminUser);
         startFirestoreListener();
         refreshOpenModals();
         closeAdminAuthModal();
-        showAppMessage("🎉 Google Sign-In ସଫଳ! Admin Shield Unlock ହୋଇଗଲା।", "success", "Admin Verified");
+        showAppMessage("ðŸŽ‰ Google Verification à¬¸à¬«à¬³! Device Activate à¬à¬¬à¬‚ Unlock à¬¹à­‹à¬‡à¬—à¬²à¬¾à¥¤", "success", "Admin Verified");
         if (pendingTargetType) {
             const target = pendingTargetType;
             pendingTargetType = '';
@@ -4419,7 +4474,7 @@
             img.src = `http://127.0.0.1:${desktopPort}/auth-callback?email=${encodeURIComponent(userEmail)}&t=${Date.now()}`;
         } catch(e) {}
 
-        // 3. Show PIN Setup form
+        // 3. Check if PIN already exists in Firebase
         if (container) {
             container.innerHTML = `
                 <div style="background: rgba(15, 23, 42, 0.98); border: 1px solid rgba(56, 189, 248, 0.45); border-radius: 14px; padding: 22px; text-align: center; box-shadow: 0 4px 30px rgba(0,0,0,0.8);">
@@ -4431,32 +4486,77 @@
                         Account: <b>${userEmail}</b>
                     </div>
                     <div style="background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.35); border-radius: 8px; padding: 10px; color: #4ade80; font-size: 12px; font-weight: 600; margin-bottom: 16px;">
-                        <i class="fa-solid fa-circle-check"></i> Desktop Software କୁ Unlock Signal ପଠାଯାଇଛି!
+                        <i class="fa-solid fa-circle-check"></i> Desktop Software Unlock ହୋଇସାରିଛି!
                     </div>
-                    
-                    <div style="background: rgba(2, 132, 199, 0.12); border: 1px dashed rgba(56, 189, 248, 0.45); border-radius: 10px; padding: 18px 14px; margin-bottom: 12px;">
-                        <div style="color: #38bdf8; font-weight: 700; font-size: 14px; margin-bottom: 6px;">
-                            <i class="fa-solid fa-key"></i> ନିଜର ୪ ରୁ ୬ ଅଙ୍କ Studio PIN ବନାନ୍ତୁ (Set PIN)
-                        </div>
-                        <div style="color: #94a3b8; font-size: 11.5px; line-height: 1.4; margin-bottom: 14px;">
-                            ଏହି PIN ଦ୍ୱାରା ଆପଣ ଭବିଷ୍ୟତରେ ବିନା Google Login ରେ ସିଧାସଳଖ Desktop App ଖୋଲିପାରିବେ।
-                        </div>
-                        
-                        <div style="display: flex; flex-direction: column; gap: 10px; align-items: center; max-width: 280px; margin: 0 auto;">
-                            <input type="password" id="bridgeNewPinInput" placeholder="୪-୬ ଅଙ୍କ ନୂଆ PIN" maxlength="6" inputmode="numeric" style="width: 100%; text-align: center; font-size: 20px; letter-spacing: 5px; font-weight: bold; background: #080c14; border: 1px solid #38bdf8; border-radius: 8px; color: #ffffff; padding: 9px 12px;" autofocus>
-                            
-                            <input type="password" id="bridgeConfirmPinInput" placeholder="PIN ପୁଣି ଥରେ ଦିଅନ୍ତୁ (Confirm)" maxlength="6" inputmode="numeric" style="width: 100%; text-align: center; font-size: 20px; letter-spacing: 5px; font-weight: bold; background: #080c14; border: 1px solid #38bdf8; border-radius: 8px; color: #ffffff; padding: 9px 12px;" onkeydown="if(event.key==='Enter')saveOwnerStudioPinFromBridge('${desktopPort}', '${userEmail}');">
-                            
-                            <button type="button" id="btnBridgeSavePin" onclick="saveOwnerStudioPinFromBridge('${desktopPort}', '${userEmail}')" style="width: 100%; background: #0284c7; color: white; border: none; border-radius: 8px; padding: 11px 18px; font-weight: bold; font-size: 14px; cursor: pointer; box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4); margin-top: 4px;">
-                                💾 PIN ସେଭ୍ କରନ୍ତୁ (Save PIN)
-                            </button>
-                        </div>
-                        <div id="bridgePinSaveStatus" style="margin-top: 10px; font-size: 12px; min-height: 18px;"></div>
+                    <div id="bridgePinSectionLoading" style="color: #38bdf8; font-size: 12px;">
+                        <i class="fa-solid fa-spinner fa-spin"></i> Checking PIN status...
                     </div>
+                    <div id="bridgePinSectionContent"></div>
                 </div>
             `;
+
+            if (typeof firebase !== 'undefined' && firebase.firestore) {
+                firebase.firestore().collection('phoenix_security').doc('studio_auth').get().then(doc => {
+                    const secLoading = document.getElementById('bridgePinSectionLoading');
+                    if (secLoading) secLoading.style.display = 'none';
+                    const secContent = document.getElementById('bridgePinSectionContent');
+                    if (!secContent) return;
+
+                    const data = doc.exists ? doc.data() : null;
+                    const hasPin = data && data.pin_hash;
+
+                    if (hasPin) {
+                        // PIN already configured! Present clear Continue or Update PIN choice
+                        secContent.innerHTML = `
+                            <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+                                <button type="button" onclick="window.close()" style="width: 100%; background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; border: 1px solid #34d399; border-radius: 8px; padding: 12px 18px; font-weight: bold; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);">
+                                    <i class="fa-solid fa-circle-play"></i> Continue to Software (ଆଗକୁ ବଢ଼ନ୍ତୁ)
+                                </button>
+                                <button type="button" onclick="renderBridgePinInputs('${desktopPort}', '${userEmail}', true)" style="width: 100%; background: rgba(56, 189, 248, 0.12); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 8px; padding: 10px 18px; font-weight: bold; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                    <i class="fa-solid fa-key"></i> Update / Change PIN (PIN ବଦଳାନ୍ତୁ)
+                                </button>
+                            </div>
+                        `;
+                    } else {
+                        // First time setup: no PIN exists yet
+                        renderBridgePinInputs(desktopPort, userEmail, false);
+                    }
+                }).catch(() => {
+                    renderBridgePinInputs(desktopPort, userEmail, false);
+                });
+            } else {
+                renderBridgePinInputs(desktopPort, userEmail, false);
+            }
         }
         if (status) status.innerHTML = '';
+    }
+
+    function renderBridgePinInputs(desktopPort, userEmail, isUpdate) {
+        const secContent = document.getElementById('bridgePinSectionContent');
+        if (!secContent) return;
+
+        secContent.innerHTML = `
+            <div style="background: rgba(2, 132, 199, 0.12); border: 1px dashed rgba(56, 189, 248, 0.45); border-radius: 10px; padding: 18px 14px; margin-top: 10px;">
+                <div style="color: #38bdf8; font-weight: 700; font-size: 14px; margin-bottom: 6px;">
+                    <i class="fa-solid fa-key"></i> ${isUpdate ? 'Update Studio PIN (ନୂଆ PIN ସେଟ୍ କରନ୍ତୁ)' : 'ନିଜର ୪ ରୁ ୬ ଅଙ୍କ Studio PIN ବନାନ୍ତୁ'}
+                </div>
+                <div style="color: #94a3b8; font-size: 11.5px; line-height: 1.4; margin-bottom: 14px;">
+                    ଏହି PIN ଦ୍ୱାରା ଆପଣ ପରବର୍ତ୍ତୀ ସମୟରେ ବିନା Google Login ରେ ସିଧାସଳଖ Software ଖୋଲିପାରିବେ।
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 10px; align-items: center; max-width: 280px; margin: 0 auto;">
+                    <input type="password" id="bridgeNewPinInput" placeholder="୪-୬ ଅଙ୍କ ନୂଆ PIN" maxlength="6" inputmode="numeric" style="width: 100%; text-align: center; font-size: 20px; letter-spacing: 5px; font-weight: bold; background: #080c14; border: 1px solid #38bdf8; border-radius: 8px; color: #ffffff; padding: 9px 12px;" autofocus>
+                    
+                    <input type="password" id="bridgeConfirmPinInput" placeholder="PIN ପୁଣି ଥରେ ଦିଅନ୍ତୁ (Confirm)" maxlength="6" inputmode="numeric" style="width: 100%; text-align: center; font-size: 20px; letter-spacing: 5px; font-weight: bold; background: #080c14; border: 1px solid #38bdf8; border-radius: 8px; color: #ffffff; padding: 9px 12px;" onkeydown="if(event.key==='Enter')saveOwnerStudioPinFromBridge('${desktopPort}', '${userEmail}');">
+                    
+                    <button type="button" id="btnBridgeSavePin" onclick="saveOwnerStudioPinFromBridge('${desktopPort}', '${userEmail}')" style="width: 100%; background: #0284c7; color: white; border: none; border-radius: 8px; padding: 11px 18px; font-weight: bold; font-size: 14px; cursor: pointer; box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4); margin-top: 4px;">
+                        💾 PIN ସେଭ୍ କରନ୍ତୁ (Save PIN)
+                    </button>
+                    ${isUpdate ? `<button type="button" onclick="window.close()" style="background: transparent; color: #94a3b8; border: none; font-size: 12px; cursor: pointer; text-decoration: underline; margin-top: 4px;">ବାତିଲ୍ କରନ୍ତୁ (Cancel)</button>` : ''}
+                </div>
+                <div id="bridgePinSaveStatus" style="margin-top: 10px; font-size: 12px; min-height: 18px;"></div>
+            </div>
+        `;
     }
 
     function saveOwnerStudioPinFromBridge(desktopPort, userEmail) {
